@@ -381,12 +381,22 @@ $(document).ready(function () {
 <h1>Loading libraries</h1>
 <pre class="r"><code>library(data.table)
 library(dplyr)
-library(stringr)</code></pre>
+library(stringr)
+library(readr)</code></pre>
 </div>
 <div id="reading-the-data" class="section level1">
 <h1>Reading the data</h1>
 <p><strong>I used fread() to load the data into R directly from the website. I stored the data in a variable called “mushroomData”.</strong></p>
-<pre class="r"><code>mushroomData &lt;- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE)</code></pre>
+<pre class="r"><code># pulling the data directly from the source website (commenting out since assignment suggests to pull
+# directly from github repository)
+
+# mushroomData &lt;- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE) #
+
+# pulling data table from my github repository
+
+mushroomData &lt;- &quot;https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework1/agaricus-lepiota.data&quot;;
+
+mushroomData &lt;- read.table(mushroomData, sep = &quot;,&quot;, stringsAsFactors = FALSE, header = FALSE)</code></pre>
 </div>
 <div id="dimensions-of-original-data-and-locating-ediblepoisonous-column" class="section level1">
 <h1>Dimensions of original data and locating edible/poisonous column</h1>
@@ -408,9 +418,9 @@ library(stringr)</code></pre>
              'stalk-color-above-ring', 'stalk-color-below-ring', 'veil-type', 'veil-color',
              'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat');</code></pre>
 </div>
-<div id="create-data.frame-to-hold-all-relabeling-information" class="section level1">
-<h1>Create data.frame to hold all relabeling information</h1>
-<p><strong>Created a data.frame to hold all relabling values. This information was also taken directly from the “Attribute Information” section, referenced above. I created a data.frame here to utilize later in a loop.</strong></p>
+<div id="create-data-frame-to-hold-all-relabeling-information" class="section level1">
+<h1>Create data frame to hold all relabeling information</h1>
+<p><strong>Created a data frame to hold all relabling values. This information was also taken directly from the “Attribute Information” section, referenced above. I created a data frame here to utilize later in a loop.</strong></p>
 <pre class="r"><code>relabels &lt;- rbind(c('edib-or-poison', &quot;e&quot;, &quot;edible&quot;), 
                   c('edib-or-poison', &quot;p&quot;, &quot;poisonous&quot;),
                   c('odor', &quot;a&quot;, &quot;almond&quot;),
@@ -460,28 +470,23 @@ relabels &lt;- data.frame(relabels, stringsAsFactors = FALSE)</code></pre>
 <p><strong>I picked these columns for the subset because I found that odor can be very predictive as to whether or not a mushroom is ultimately edible or poisonous. Additionally, cap-color has been quite predictive as well. I also thought that adding population information and habitat information may be interesting for future analysis, given that we could look at trends based on prevelance and types of suitable habitats.</strong></p>
 <pre class="r"><code>mushroomData &lt;- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'population', 'habitat')</code></pre>
 </div>
-<div id="utilize-the-relables-data.frame-to-re-label-values-in-mushroom-dataset" class="section level1">
-<h1>Utilize the relables data.frame to re-label values in mushroom dataset</h1>
-<p><strong>By setting up the relabels data.frame above, I created a loop to update the data based on its corresponding values.</strong></p>
+<div id="utilize-the-relables-data-frame-to-re-label-values-in-mushroom-dataset" class="section level1">
+<h1>Utilize the relables data frame to re-label values in mushroom dataset</h1>
+<p><strong>By setting up the relabels data frame above, I created a loop to update the data based on its corresponding values.</strong></p>
 <pre class="r"><code>for(i in 1:length(relabels$X1)){
   mushroomData[[relabels$X1[i]]] &lt;- replace(mushroomData[[relabels$X1[i]]] , mushroomData[[relabels$X1[i]]] == relabels$X2[i], relabels$X3[i])
 }</code></pre>
 </div>
-<div id="print-out-final-subsetted-data.frame" class="section level1">
-<h1>Print out final, subsetted data.frame</h1>
-<pre class="r"><code>mushroomData</code></pre>
-<pre><code>##       edib-or-poison    odor cap-color population habitat
-##    1:      poisonous pungent     brown  scattered   urban
-##    2:         edible  almond    yellow   numerous grasses
-##    3:         edible   anise     white   numerous meadows
-##    4:      poisonous pungent     white  scattered   urban
-##    5:         edible    none      gray   abundant grasses
-##   ---                                                    
-## 8120:         edible    none     brown  clustered  leaves
-## 8121:         edible    none     brown    several  leaves
-## 8122:         edible    none     brown  clustered  leaves
-## 8123:      poisonous   fishy     brown    several  leaves
-## 8124:         edible    none     brown  clustered  leaves</code></pre>
+<div id="print-out-final-subsetted-data-frame" class="section level1">
+<h1>Print out final, subsetted data frame</h1>
+<pre class="r"><code>head(mushroomData)</code></pre>
+<pre><code>##   edib-or-poison    odor cap-color population habitat
+## 1      poisonous pungent     brown  scattered   urban
+## 2         edible  almond    yellow   numerous grasses
+## 3         edible   anise     white   numerous meadows
+## 4      poisonous pungent     white  scattered   urban
+## 5         edible    none      gray   abundant grasses
+## 6         edible  almond    yellow   numerous grasses</code></pre>
 </div>
 
 

@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(dplyr)
 library(stringr)
+library(readr)
 ```
 
 
@@ -29,7 +30,17 @@ called "mushroomData".**
 
 
 ```{r}
-mushroomData <- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE)
+# pulling the data directly from the source website (commenting out since assignment suggests to pull
+# directly from github repository)
+
+# mushroomData <- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE) #
+
+# pulling data table from my github repository
+
+mushroomData <- "https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework1/agaricus-lepiota.data";
+
+mushroomData <- read.table(mushroomData, sep = ",", stringsAsFactors = FALSE, header = FALSE)
+
 ```
 
 
@@ -71,12 +82,12 @@ headers <- c('edib-or-poison', 'cap-shape', 'cap-surface', 'cap-color', 'bruises
 
 
 
-# Create data.frame to hold all relabeling information
+# Create data frame to hold all relabeling information
 
 
 
-**Created a data.frame to hold all relabling values. This information was also taken directly from
-the "Attribute Information" section, referenced above. I created a data.frame here to utilize later
+**Created a data frame to hold all relabling values. This information was also taken directly from
+the "Attribute Information" section, referenced above. I created a data frame here to utilize later
 in a loop.**
 
 
@@ -148,10 +159,10 @@ mushroomData <- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'pop
 ```
 
 
-# Utilize the relables data.frame to re-label values in mushroom dataset
+# Utilize the relables data frame to re-label values in mushroom dataset
 
 
-**By setting up the relabels data.frame above, I created a loop to update the data based on its
+**By setting up the relabels data frame above, I created a loop to update the data based on its
 corresponding values.**
 
 ```{r}
@@ -162,10 +173,10 @@ for(i in 1:length(relabels$X1)){
 
 
 
-# Print out final, subsetted data.frame
+# Print out final, subsetted data frame
 
 
 ```{r}
-mushroomData
+head(mushroomData)
 ```
 
