@@ -27,41 +27,43 @@ headers <- c('edib-or-poison',
              'population',
              'habitat');
 
-relabels <- rbind(c(1, "e", "edible"), 
-                  c(1, "p", "poisonous"),
-                  c(2, "a", "almond"),
-                  c(2, "l", "anise"),
-                  c(2, "c", "creosote"),
-                  c(2, "y", "fishy"),
-                  c(2, "f", "foul"),
-                  c(2, "m", "musty"),
-                  c(2, "n", "none"),
-                  c(2, "p", "pungent"),
-                  c(2, "s", "spicy"),
-                  c(3, "n", "brown"),
-                  c(3, "b", "buff"),
-                  c(3, "c", "cinnamon"),
-                  c(3, "g", "gray"),
-                  c(3, "r", "green"),
-                  c(3, "p", "pink"),
-                  c(3, "u", "purple"),
-                  c(3, "e", "red"),
-                  c(3, "w", "white"),
-                  c(3, "y", "yellow"),
-                  c(4, "a", "abundant"),
-                  c(4, "c", "clustered"),
-                  c(4, "n", "numerous"),
-                  c(4, "s", "scattered"),
-                  c(4, "v", "several"),
-                  c(4, "y", "solitary"),
-                  c(5, "g", "grasses"),
-                  c(5, "l", "leaves"),
-                  c(5, "m", "meadows"),
-                  c(5, "p", "paths"),
-                  c(5, "u", "urban"),
-                  c(5, "w", "waste"),
-                  c(5, "d", "woods")
+relabels <- rbind(c('edib-or-poison', "e", "edible"), 
+                  c('edib-or-poison', "p", "poisonous"),
+                  c('odor', "a", "almond"),
+                  c('odor', "l", "anise"),
+                  c('odor', "c", "creosote"),
+                  c('odor', "y", "fishy"),
+                  c('odor', "f", "foul"),
+                  c('odor', "m", "musty"),
+                  c('odor', "n", "none"),
+                  c('odor', "p", "pungent"),
+                  c('odor', "s", "spicy"),
+                  c('cap-color', "n", "brown"),
+                  c('cap-color', "b", "buff"),
+                  c('cap-color', "c", "cinnamon"),
+                  c('cap-color', "g", "gray"),
+                  c('cap-color', "r", "green"),
+                  c('cap-color', "p", "pink"),
+                  c('cap-color', "u", "purple"),
+                  c('cap-color', "e", "red"),
+                  c('cap-color', "w", "white"),
+                  c('cap-color', "y", "yellow"),
+                  c('population', "a", "abundant"),
+                  c('population', "c", "clustered"),
+                  c('population', "n", "numerous"),
+                  c('population', "s", "scattered"),
+                  c('population', "v", "several"),
+                  c('population', "y", "solitary"),
+                  c('habitat', "g", "grasses"),
+                  c('habitat', "l", "leaves"),
+                  c('habitat', "m", "meadows"),
+                  c('habitat', "p", "paths"),
+                  c('habitat', "u", "urban"),
+                  c('habitat', "w", "waste"),
+                  c('habitat', "d", "woods")
 );
+
+relabels <- data.frame(relabels, stringsAsFactors = FALSE)
 
 for(i in 1:length(headers)) {
   names(mushroomData)[i] <- headers[i]
@@ -69,29 +71,9 @@ for(i in 1:length(headers)) {
 
 mushroomData <- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'population', 'habitat')
 
-for(i in 1:length(test[, 1])){
-  if (test[i, 1] == "1"){
-    mushroomData$`edib-or-poison` <- replace(mushroomData$`edib-or-poison` , mushroomData$`edib-or-poison` == test[i, 2], test[i, 3])
-  }
-  if (test[i, 1] == "2"){
-    mushroomData$odor <- replace(mushroomData$odor , mushroomData$odor == test[i, 2], test[i, 3])
-  }
-  if (test[i, 1] == "3"){
-    mushroomData$`cap-color` <- replace(mushroomData$`cap-color` , mushroomData$`cap-color` == test[i, 2], test[i, 3])
-  }
-  if (test[i, 1] == "4"){
-    mushroomData$population <- replace(mushroomData$population , mushroomData$population == test[i, 2], test[i, 3])
-  }
-  if (test[i, 1] == "5"){
-    mushroomData$habitat <- replace(mushroomData$habitat , mushroomData$habitat == test[i, 2], test[i, 3])
-  }
+for(i in 1:length(relabels$X1)){
+  mushroomData[[relabels$X1[i]]] <- replace(mushroomData[[relabels$X1[i]]] , mushroomData[[relabels$X1[i]]] == relabels$X2[i], relabels$X3[i])
 }
-
-table(mushroomData$`edib-or-poison`)
-table(mushroomData$odor)
-table(mushroomData$`cap-color`)
-table(mushroomData$population)
-table(mushroomData$habitat)
 
 
 

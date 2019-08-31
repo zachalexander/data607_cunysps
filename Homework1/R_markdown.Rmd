@@ -9,9 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Libraries used
+# Loading libraries
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(data.table)
 library(dplyr)
 library(stringr)
@@ -23,8 +23,73 @@ library(stringr)
 mushroomData <- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE)
 ```
 
+# Add headers
 
 ```{r}
+headers <- c('edib-or-poison', 'cap-shape', 'cap-surface', 'cap-color', 'bruises?', 'odor',
+             'gill-attachment', 'gill-spacing', 'gill-size', 'gill-color', 'stalk-shape',
+             'stalk-root', 'stalk-surface-above-ring', 'stalk-surface-below-ring',
+             'stalk-color-above-ring', 'stalk-color-below-ring', 'veil-type', 'veil-color',
+             'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat');
+```
 
+# Add relabels for values
+
+**Created a datatable to hold all relabling values**
+
+```{r}
+relabels <- rbind(c('edib-or-poison', "e", "edible"), 
+                  c('edib-or-poison', "p", "poisonous"),
+                  c('odor', "a", "almond"),
+                  c('odor', "l", "anise"),
+                  c('odor', "c", "creosote"),
+                  c('odor', "y", "fishy"),
+                  c('odor', "f", "foul"),
+                  c('odor', "m", "musty"),
+                  c('odor', "n", "none"),
+                  c('odor', "p", "pungent"),
+                  c('odor', "s", "spicy"),
+                  c('cap-color', "n", "brown"),
+                  c('cap-color', "b", "buff"),
+                  c('cap-color', "c", "cinnamon"),
+                  c('cap-color', "g", "gray"),
+                  c('cap-color', "r", "green"),
+                  c('cap-color', "p", "pink"),
+                  c('cap-color', "u", "purple"),
+                  c('cap-color', "e", "red"),
+                  c('cap-color', "w", "white"),
+                  c('cap-color', "y", "yellow"),
+                  c('population', "a", "abundant"),
+                  c('population', "c", "clustered"),
+                  c('population', "n", "numerous"),
+                  c('population', "s", "scattered"),
+                  c('population', "v", "several"),
+                  c('population', "y", "solitary"),
+                  c('habitat', "g", "grasses"),
+                  c('habitat', "l", "leaves"),
+                  c('habitat', "m", "meadows"),
+                  c('habitat', "p", "paths"),
+                  c('habitat', "u", "urban"),
+                  c('habitat', "w", "waste"),
+                  c('habitat', "d", "woods")
+);
+```
+
+# Created a script to edit the data file
+
+```{r}
+relabels <- data.frame(relabels, stringsAsFactors = FALSE)
+
+for(i in 1:length(headers)) {
+  names(mushroomData)[i] <- headers[i]
+}
+
+mushroomData <- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'population', 'habitat')
+
+for(i in 1:length(relabels$X1)){
+  mushroomData[[relabels$X1[i]]] <- replace(mushroomData[[relabels$X1[i]]] , mushroomData[[relabels$X1[i]]] == relabels$X2[i], relabels$X3[i])
+}
+
+mushroomData
 ```
 
