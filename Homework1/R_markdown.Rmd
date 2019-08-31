@@ -5,11 +5,14 @@ date: "August 30, 2019"
 output: html_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 # Loading libraries
+
 
 ```{r, warning=FALSE, message=FALSE}
 library(data.table)
@@ -17,13 +20,46 @@ library(dplyr)
 library(stringr)
 ```
 
+
 # Reading the data
+
+
+**I used fread() to load the data into R directly from the website. I stored the data in a variable
+called "mushroomData".**
+
 
 ```{r}
 mushroomData <- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE)
 ```
 
-# Add headers
+
+# Dimensions of original data and locating edible/poisonous column
+
+
+**Once I read the data into R, I took a look at its dimensions:**
+
+
+```{r}
+dim(mushroomData)
+```
+
+
+**I also noticed that the first column had values of "e" or "p", which I believed to
+characterize mushrooms as either "edible" or "poisonous".**
+
+
+```{r}
+table(mushroomData$V1)
+```
+
+
+**After looking through the documentation, I located the ["Attribute Information" section](https://archive.ics.uci.edu/ml/datasets/Mushroom).
+Below, are the column names associated with the dataset. With the prior knowledge that the first column
+of the dataset classifies mushrooms as either edible or poisonous, I was able to add in the additional column names after this first column. I decided to store the headers in a vector for later use.**
+
+
+# Created a vector to store all header information
+
 
 ```{r}
 headers <- c('edib-or-poison', 'cap-shape', 'cap-surface', 'cap-color', 'bruises?', 'odor',
@@ -33,9 +69,17 @@ headers <- c('edib-or-poison', 'cap-shape', 'cap-surface', 'cap-color', 'bruises
              'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat');
 ```
 
-# Add relabels for values
 
-**Created a datatable to hold all relabling values**
+
+# Create data.frame to hold all relabeling information
+
+
+
+**Created a data.frame to hold all relabling values. This information was also taken directly from
+the "Attribute Information" section, referenced above. I created a data.frame here to utilize later
+in a loop.**
+
+
 
 ```{r}
 relabels <- rbind(c('edib-or-poison', "e", "edible"), 
@@ -72,24 +116,56 @@ relabels <- rbind(c('edib-or-poison', "e", "edible"),
                   c('habitat', "u", "urban"),
                   c('habitat', "w", "waste"),
                   c('habitat', "d", "woods")
-);
+                );
+
+relabels <- data.frame(relabels, stringsAsFactors = FALSE)
 ```
 
-# Created a script to edit the data file
+
+
+# Added headers to mushroom data
+
+
 
 ```{r}
-relabels <- data.frame(relabels, stringsAsFactors = FALSE)
-
 for(i in 1:length(headers)) {
   names(mushroomData)[i] <- headers[i]
 }
+```
 
+
+
+# Subset mushroom dataset to include 5 columns
+
+
+**I picked these columns for the subset because I found that odor can be very predictive as to whether or not a mushroom is ultimately edible or poisonous. Additionally, cap-color has been quite predictive as well. I also thought that adding population information and habitat information may be interesting
+for future analysis, given that we could look at trends based on prevelance and types of suitable
+habitats.**
+
+
+```{r}
 mushroomData <- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'population', 'habitat')
+```
 
+
+# Utilize the relables data.frame to re-label values in mushroom dataset
+
+
+**By setting up the relabels data.frame above, I created a loop to update the data based on its
+corresponding values.**
+
+```{r}
 for(i in 1:length(relabels$X1)){
   mushroomData[[relabels$X1[i]]] <- replace(mushroomData[[relabels$X1[i]]] , mushroomData[[relabels$X1[i]]] == relabels$X2[i], relabels$X3[i])
 }
+```
 
+
+
+# Print out final, subsetted data.frame
+
+
+```{r}
 mushroomData
 ```
 

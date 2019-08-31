@@ -385,19 +385,32 @@ library(stringr)</code></pre>
 </div>
 <div id="reading-the-data" class="section level1">
 <h1>Reading the data</h1>
+<p><strong>I used fread() to load the data into R directly from the website. I stored the data in a variable called “mushroomData”.</strong></p>
 <pre class="r"><code>mushroomData &lt;- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE)</code></pre>
 </div>
-<div id="add-headers" class="section level1">
-<h1>Add headers</h1>
+<div id="dimensions-of-original-data-and-locating-ediblepoisonous-column" class="section level1">
+<h1>Dimensions of original data and locating edible/poisonous column</h1>
+<p><strong>Once I read the data into R, I took a look at its dimensions:</strong></p>
+<pre class="r"><code>dim(mushroomData)</code></pre>
+<pre><code>## [1] 8124   23</code></pre>
+<p><strong>I also noticed that the first column had values of “e” or “p”, which I believed to characterize mushrooms as either “edible” or “poisonous”.</strong></p>
+<pre class="r"><code>table(mushroomData$V1)</code></pre>
+<pre><code>## 
+##    e    p 
+## 4208 3916</code></pre>
+<p><strong>After looking through the documentation, I located the <a href="https://archive.ics.uci.edu/ml/datasets/Mushroom">“Attribute Information” section</a>. Below, are the column names associated with the dataset. With the prior knowledge that the first column of the dataset classifies mushrooms as either edible or poisonous, I was able to add in the additional column names after this first column. I decided to store the headers in a vector for later use.</strong></p>
+</div>
+<div id="created-a-vector-to-store-all-header-information" class="section level1">
+<h1>Created a vector to store all header information</h1>
 <pre class="r"><code>headers &lt;- c('edib-or-poison', 'cap-shape', 'cap-surface', 'cap-color', 'bruises?', 'odor',
              'gill-attachment', 'gill-spacing', 'gill-size', 'gill-color', 'stalk-shape',
              'stalk-root', 'stalk-surface-above-ring', 'stalk-surface-below-ring',
              'stalk-color-above-ring', 'stalk-color-below-ring', 'veil-type', 'veil-color',
              'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat');</code></pre>
 </div>
-<div id="add-relabels-for-values" class="section level1">
-<h1>Add relabels for values</h1>
-<p><strong>Created a datatable to hold all relabling values</strong></p>
+<div id="create-data.frame-to-hold-all-relabeling-information" class="section level1">
+<h1>Create data.frame to hold all relabeling information</h1>
+<p><strong>Created a data.frame to hold all relabling values. This information was also taken directly from the “Attribute Information” section, referenced above. I created a data.frame here to utilize later in a loop.</strong></p>
 <pre class="r"><code>relabels &lt;- rbind(c('edib-or-poison', &quot;e&quot;, &quot;edible&quot;), 
                   c('edib-or-poison', &quot;p&quot;, &quot;poisonous&quot;),
                   c('odor', &quot;a&quot;, &quot;almond&quot;),
@@ -432,23 +445,31 @@ library(stringr)</code></pre>
                   c('habitat', &quot;u&quot;, &quot;urban&quot;),
                   c('habitat', &quot;w&quot;, &quot;waste&quot;),
                   c('habitat', &quot;d&quot;, &quot;woods&quot;)
-);</code></pre>
+                );
+
+relabels &lt;- data.frame(relabels, stringsAsFactors = FALSE)</code></pre>
 </div>
-<div id="created-a-script-to-edit-the-data-file" class="section level1">
-<h1>Created a script to edit the data file</h1>
-<pre class="r"><code>relabels &lt;- data.frame(relabels, stringsAsFactors = FALSE)
-
-for(i in 1:length(headers)) {
+<div id="added-headers-to-mushroom-data" class="section level1">
+<h1>Added headers to mushroom data</h1>
+<pre class="r"><code>for(i in 1:length(headers)) {
   names(mushroomData)[i] &lt;- headers[i]
-}
-
-mushroomData &lt;- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'population', 'habitat')
-
-for(i in 1:length(relabels$X1)){
+}</code></pre>
+</div>
+<div id="subset-mushroom-dataset-to-include-5-columns" class="section level1">
+<h1>Subset mushroom dataset to include 5 columns</h1>
+<p><strong>I picked these columns for the subset because I found that odor can be very predictive as to whether or not a mushroom is ultimately edible or poisonous. Additionally, cap-color has been quite predictive as well. I also thought that adding population information and habitat information may be interesting for future analysis, given that we could look at trends based on prevelance and types of suitable habitats.</strong></p>
+<pre class="r"><code>mushroomData &lt;- select(mushroomData, 'edib-or-poison', 'odor', 'cap-color', 'population', 'habitat')</code></pre>
+</div>
+<div id="utilize-the-relables-data.frame-to-re-label-values-in-mushroom-dataset" class="section level1">
+<h1>Utilize the relables data.frame to re-label values in mushroom dataset</h1>
+<p><strong>By setting up the relabels data.frame above, I created a loop to update the data based on its corresponding values.</strong></p>
+<pre class="r"><code>for(i in 1:length(relabels$X1)){
   mushroomData[[relabels$X1[i]]] &lt;- replace(mushroomData[[relabels$X1[i]]] , mushroomData[[relabels$X1[i]]] == relabels$X2[i], relabels$X3[i])
-}
-
-mushroomData</code></pre>
+}</code></pre>
+</div>
+<div id="print-out-final-subsetted-data.frame" class="section level1">
+<h1>Print out final, subsetted data.frame</h1>
+<pre class="r"><code>mushroomData</code></pre>
 <pre><code>##       edib-or-poison    odor cap-color population habitat
 ##    1:      poisonous pungent     brown  scattered   urban
 ##    2:         edible  almond    yellow   numerous grasses
