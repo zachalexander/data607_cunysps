@@ -1,0 +1,30 @@
+---
+title: "Homework1"
+author: "Zach Alexander"
+date: "August 30, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries used
+
+```{r}
+library(data.table)
+library(dplyr)
+library(stringr)
+```
+
+# Reading the data
+
+```{r}
+mushroomData <- fread('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data', header = FALSE, stringsAsFactors = FALSE)
+```
+
+
+```{r}
+
+```
+
