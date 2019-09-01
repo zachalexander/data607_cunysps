@@ -386,7 +386,7 @@ library(readr)</code></pre>
 </div>
 <div id="reading-the-data" class="section level1">
 <h1>Reading the data</h1>
-<p><strong>I used fread() to load the data into R directly from the website. I stored the data in a variable called “mushroomData”.</strong></p>
+<p><strong>I used read.table to load the data into R from my github repository. I stored the data in a data frame called mushroomData. I used the sep = “,” to separate the data by commons found in the raw file.</strong></p>
 <pre class="r"><code># pulling the data directly from the source website (commenting out since assignment suggests to pull
 # directly from github repository)
 
@@ -479,7 +479,8 @@ relabels &lt;- data.frame(relabels, stringsAsFactors = FALSE)</code></pre>
 </div>
 <div id="print-out-final-subsetted-data-frame" class="section level1">
 <h1>Print out final, subsetted data frame</h1>
-<pre class="r"><code>head(mushroomData)</code></pre>
+<pre class="r"><code># just printing the first few rows since it's a long dataset.
+head(mushroomData)</code></pre>
 <pre><code>##   edib-or-poison    odor cap-color population habitat
 ## 1      poisonous pungent     brown  scattered   urban
 ## 2         edible  almond    yellow   numerous grasses
@@ -487,6 +488,8 @@ relabels &lt;- data.frame(relabels, stringsAsFactors = FALSE)</code></pre>
 ## 4      poisonous pungent     white  scattered   urban
 ## 5         edible    none      gray   abundant grasses
 ## 6         edible  almond    yellow   numerous grasses</code></pre>
+<pre class="r"><code># uncomment below to see full dataset 
+# mushroomData</code></pre>
 </div>
 
 

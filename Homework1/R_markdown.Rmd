@@ -25,8 +25,7 @@ library(readr)
 # Reading the data
 
 
-**I used fread() to load the data into R directly from the website. I stored the data in a variable
-called "mushroomData".**
+**I used read.table to load the data into R from my github repository. I stored the data in a data frame called mushroomData. I used the sep = "," to separate the data by commons found in the raw file.**
 
 
 ```{r}
@@ -177,6 +176,10 @@ for(i in 1:length(relabels$X1)){
 
 
 ```{r}
+# just printing the first few rows since it's a long dataset.
 head(mushroomData)
+
+# uncomment below to see full dataset 
+# mushroomData
 ```
 
