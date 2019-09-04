@@ -1,0 +1,66 @@
+---
+title: 'Data 607 - Homework #2'
+author: "Zach Alexander"
+date: "September 4, 2019"
+output: html_document
+---
+
+## Install Packages
+
+**You'll need to install the 'RCurl', 'RMySQL' and 'dbConnect' packages**
+
+```{r setup, include=FALSE}
+# install.packages('RMySQL')
+# install.packages('dbConnect')
+# install.packages('RCurl')
+library(RCurl)
+library(RMySQL)
+library(dbConnect)
+```
+
+
+## Connect to the MySQL Database
+
+**Using dbConnect, I connected R to my database of movie ratings. The database name is called, 'movie_ratings'.**
+
+```{r}
+mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='movie_ratings', host='localhost', port = 3306)
+```
+
+## Access SQL query to join tables
+
+**I created a SQL query that joins important fields from the 'friends' table, 'ratings' table, and 'movies' table for our final dataframe. The code below reads in this file from GitHub to be used later.**
+
+You can also embed plots, for example:
+
+```{r}
+my_query <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework2/movie_ratings_query.sql');
+my_query <- paste(readLines(my_query), collapse='\n')
+```
+
+## run the dbGetQuery function to create data frame
+
+**dbConnect has a function to query a connected database in order to retrieve data. The following code takes my SQL query from above that I read in from GitHub, and uses it to join information from our 'friends', 'ratings', and 'movies' tables in the movie_ratings database in MySQL.**
+
+```{r}
+movie_ratings <- dbGetQuery(mydb, my_query)
+movie_ratings
+```
+
+## My final data frame
+
+```{r}
+head(movie_ratings)
+
+# uncomment for full data frame
+# movie_ratings
+```
+
+
+## Disconnect from database
+
+```{r}
+dbDisconnect(mydb)
+```
+
+
