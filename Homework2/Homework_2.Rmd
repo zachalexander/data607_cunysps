@@ -34,7 +34,7 @@ mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='movie_rati
 You can also embed plots, for example:
 
 ```{r}
-my_query <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework2/movie_ratings_query.sql');
+my_query <- 'https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework2/movie_ratings_query.sql';
 my_query <- paste(readLines(my_query), collapse='\n')
 ```
 
@@ -44,7 +44,6 @@ my_query <- paste(readLines(my_query), collapse='\n')
 
 ```{r}
 movie_ratings <- dbGetQuery(mydb, my_query)
-movie_ratings
 ```
 
 ## My final data frame
