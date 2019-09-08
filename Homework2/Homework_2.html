@@ -11,7 +11,7 @@
 
 <meta name="author" content="Zach Alexander" />
 
-<meta name="date" content="2019-09-04" />
+<meta name="date" content="2019-09-08" />
 
 <title>Data 607 - Homework #2</title>
 
@@ -372,7 +372,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Data 607 - Homework #2</h1>
 <h4 class="author"><em>Zach Alexander</em></h4>
-<h4 class="date"><em>September 4, 2019</em></h4>
+<h4 class="date"><em>September 8, 2019</em></h4>
 
 </div>
 
@@ -384,7 +384,7 @@ $(document).ready(function () {
 <div id="connect-to-the-mysql-database" class="section level2">
 <h2>Connect to the MySQL Database</h2>
 <p><strong>Using dbConnect, I connected R to my database of movie ratings. The database name is called, ‘movie_ratings’.</strong></p>
-<pre class="r"><code>mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='movie_ratings', host='localhost', port = 3306)</code></pre>
+<pre class="r"><code>mydb = dbConnect(MySQL(), user='root', password=sql_password, dbname='movie_ratings', host='localhost', port = 3306)</code></pre>
 </div>
 <div id="access-sql-query-to-join-tables" class="section level2">
 <h2>Access SQL query to join tables</h2>
@@ -396,15 +396,7 @@ my_query &lt;- paste(readLines(my_query), collapse='\n')</code></pre>
 <div id="run-the-dbgetquery-function-to-create-data-frame" class="section level2">
 <h2>run the dbGetQuery function to create data frame</h2>
 <p><strong>dbConnect has a function to query a connected database in order to retrieve data. The following code takes my SQL query from above that I read in from GitHub, and uses it to join information from our ‘friends’, ‘ratings’, and ‘movies’ tables in the movie_ratings database in MySQL.</strong></p>
-<pre class="r"><code>movie_ratings &lt;- dbGetQuery(mydb, my_query)
-
-
-# Spiderman: Into the Spider-verse
-# Lion King
-# Black Panther
-# Blackkklansman
-# RGB 
-# If Beale Street Could Talk</code></pre>
+<pre class="r"><code>movie_ratings &lt;- dbGetQuery(mydb, my_query)</code></pre>
 </div>
 <div id="my-final-data-frame" class="section level2">
 <h2>My final data frame</h2>

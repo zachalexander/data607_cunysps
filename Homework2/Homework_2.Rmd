@@ -1,7 +1,7 @@
 ---
 title: 'Data 607 - Homework #2'
 author: "Zach Alexander"
-date: "September 4, 2019"
+date: "September 8, 2019"
 output: html_document
 ---
 
@@ -23,8 +23,13 @@ library(dbConnect)
 
 **Using dbConnect, I connected R to my database of movie ratings. The database name is called, 'movie_ratings'.**
 
+```{r, echo=FALSE}
+sql_password = 'Biology512'
+```
+
+
 ```{r}
-mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='movie_ratings', host='localhost', port = 3306)
+mydb = dbConnect(MySQL(), user='root', password=sql_password, dbname='movie_ratings', host='localhost', port = 3306)
 ```
 
 ## Access SQL query to join tables
@@ -44,14 +49,6 @@ my_query <- paste(readLines(my_query), collapse='\n')
 
 ```{r}
 movie_ratings <- dbGetQuery(mydb, my_query)
-
-
-# Spiderman: Into the Spider-verse
-# Lion King
-# Black Panther
-# Blackkklansman
-# RGB 
-# If Beale Street Could Talk
 ```
 
 ## My final data frame
