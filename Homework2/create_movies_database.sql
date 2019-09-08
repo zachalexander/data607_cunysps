@@ -1,9 +1,12 @@
 CREATE DATABASE `movie_ratings`;
 
+/* just in case there is existing data in these tables */
+DROP TABLE friends, movies, ratings;
+
 CREATE TABLE friends (  
 	friend_id INT PRIMARY KEY,  
 	first_name VARCHAR(255),     
-	last_name VARCHAR(255) 
+	last_name VARCHAR(255)
 );
 
 CREATE TABLE movies (  
@@ -39,21 +42,21 @@ INSERT INTO movies (movie_id, movie_name, year) VALUES
 INSERT INTO ratings (friend_id, movie_id, rating) VALUES  
 (1, 1, 3), 
 (1, 2, 1), 
-(1, 3, 2), 
+(1, 3, NULL), 
 (1, 4, 2), 
 (1, 5, 5), 
 (1, 6, 4), 
-(2, 1, 5), 
-(2, 2, 5), 
+(2, 1, NULL), 
+(2, 2, NULL), 
 (2, 3, 2), 
 (2, 4, 1), 
-(2, 5, 3), 
+(2, 5, NULL), 
 (2, 6, 1), 
-(3, 1, 1), 
+(3, 1, NULL), 
 (3, 2, 2), 
 (3, 3, 1), 
 (3, 4, 3), 
-(3, 5, 1), 
+(3, 5, NULL), 
 (3, 6, 2), 
 (4, 1, 2), 
 (4, 2, 3), 
@@ -67,7 +70,7 @@ INSERT INTO ratings (friend_id, movie_id, rating) VALUES
 (5, 4, 1), 
 (5, 5, 1), 
 (5, 6, 1), 
-(6, 1, 2), 
+(6, 1, NULL), 
 (6, 2, 1), 
 (6, 3, 4), 
 (6, 4, 3), 
@@ -78,10 +81,10 @@ INSERT INTO ratings (friend_id, movie_id, rating) VALUES
 (7, 3, 1), 
 (7, 4, 4), 
 (7, 5, 3), 
-(7, 6, 2), 
-(8, 1, 2), 
+(7, 6, NULL), 
+(8, 1, NULL), 
 (8, 2, 5), 
 (8, 3, 3), 
-(8, 4, 4), 
+(8, 4, NULL), 
 (8, 5, 4), 
-(8, 6, 1);
+(8, 6, NULL);

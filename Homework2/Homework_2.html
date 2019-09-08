@@ -396,20 +396,68 @@ my_query &lt;- paste(readLines(my_query), collapse='\n')</code></pre>
 <div id="run-the-dbgetquery-function-to-create-data-frame" class="section level2">
 <h2>run the dbGetQuery function to create data frame</h2>
 <p><strong>dbConnect has a function to query a connected database in order to retrieve data. The following code takes my SQL query from above that I read in from GitHub, and uses it to join information from our ‘friends’, ‘ratings’, and ‘movies’ tables in the movie_ratings database in MySQL.</strong></p>
-<pre class="r"><code>movie_ratings &lt;- dbGetQuery(mydb, my_query)</code></pre>
+<pre class="r"><code>movie_ratings &lt;- dbGetQuery(mydb, my_query)
+
+
+# Spiderman: Into the Spider-verse
+# Lion King
+# Black Panther
+# Blackkklansman
+# RGB 
+# If Beale Street Could Talk</code></pre>
 </div>
 <div id="my-final-data-frame" class="section level2">
 <h2>My final data frame</h2>
-<pre class="r"><code>head(movie_ratings)</code></pre>
-<pre><code>##   friend_name         movie_name rating
-## 1 Jeff Blanco   The Perfect Date      3
-## 2 Jeff Blanco     Murder Mystery      1
-## 3 Jeff Blanco           Dogtooth     NA
-## 4 Jeff Blanco    Forever My Girl      2
-## 5 Jeff Blanco Fifty Shades Freed      5
-## 6 Jeff Blanco      Truth or Dare      4</code></pre>
-<pre class="r"><code># uncomment for full data frame
-# movie_ratings</code></pre>
+<pre class="r"><code>movie_ratings</code></pre>
+<pre><code>##           friend_name         movie_name rating
+## 1         Jeff Blanco   The Perfect Date      3
+## 2         Jeff Blanco     Murder Mystery      1
+## 3         Jeff Blanco           Dogtooth     NA
+## 4         Jeff Blanco    Forever My Girl      2
+## 5         Jeff Blanco Fifty Shades Freed      5
+## 6         Jeff Blanco      Truth or Dare      4
+## 7     Adrian Hamilton   The Perfect Date     NA
+## 8     Adrian Hamilton     Murder Mystery     NA
+## 9     Adrian Hamilton           Dogtooth      2
+## 10    Adrian Hamilton    Forever My Girl      1
+## 11    Adrian Hamilton Fifty Shades Freed     NA
+## 12    Adrian Hamilton      Truth or Dare      1
+## 13   Charles Benedict   The Perfect Date     NA
+## 14   Charles Benedict     Murder Mystery      2
+## 15   Charles Benedict           Dogtooth      1
+## 16   Charles Benedict    Forever My Girl      3
+## 17   Charles Benedict Fifty Shades Freed     NA
+## 18   Charles Benedict      Truth or Dare      2
+## 19     Kathy Thompson   The Perfect Date      2
+## 20     Kathy Thompson     Murder Mystery      3
+## 21     Kathy Thompson           Dogtooth      3
+## 22     Kathy Thompson    Forever My Girl      5
+## 23     Kathy Thompson Fifty Shades Freed      4
+## 24     Kathy Thompson      Truth or Dare      4
+## 25      Melissa Smith   The Perfect Date      1
+## 26      Melissa Smith     Murder Mystery      1
+## 27      Melissa Smith           Dogtooth      1
+## 28      Melissa Smith    Forever My Girl      1
+## 29      Melissa Smith Fifty Shades Freed      1
+## 30      Melissa Smith      Truth or Dare      1
+## 31  Jasper Cunningham   The Perfect Date     NA
+## 32  Jasper Cunningham     Murder Mystery      1
+## 33  Jasper Cunningham           Dogtooth      4
+## 34  Jasper Cunningham    Forever My Girl      3
+## 35  Jasper Cunningham Fifty Shades Freed      5
+## 36  Jasper Cunningham      Truth or Dare      5
+## 37 Katherine Williams   The Perfect Date      4
+## 38 Katherine Williams     Murder Mystery      2
+## 39 Katherine Williams           Dogtooth      1
+## 40 Katherine Williams    Forever My Girl      4
+## 41 Katherine Williams Fifty Shades Freed      3
+## 42 Katherine Williams      Truth or Dare     NA
+## 43     Ronald Beavers   The Perfect Date     NA
+## 44     Ronald Beavers     Murder Mystery      5
+## 45     Ronald Beavers           Dogtooth      3
+## 46     Ronald Beavers    Forever My Girl     NA
+## 47     Ronald Beavers Fifty Shades Freed      4
+## 48     Ronald Beavers      Truth or Dare     NA</code></pre>
 </div>
 <div id="disconnect-from-database" class="section level2">
 <h2>Disconnect from database</h2>
