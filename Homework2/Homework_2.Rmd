@@ -1,7 +1,7 @@
 ---
 title: 'Data 607 - Homework #2'
 author: "Zach Alexander"
-date: "September 4, 2019"
+date: "September 8, 2019"
 output: html_document
 ---
 
@@ -23,8 +23,13 @@ library(dbConnect)
 
 **Using dbConnect, I connected R to my database of movie ratings. The database name is called, 'movie_ratings'.**
 
+```{r, echo=FALSE}
+sql_password = 'Biology512'
+```
+
+
 ```{r}
-mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='movie_ratings', host='localhost', port = 3306)
+mydb = dbConnect(MySQL(), user='root', password=sql_password, dbname='movie_ratings', host='localhost', port = 3306)
 ```
 
 ## Access SQL query to join tables
@@ -34,7 +39,7 @@ mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='movie_rati
 You can also embed plots, for example:
 
 ```{r}
-my_query <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework2/movie_ratings_query.sql');
+my_query <- 'https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework2/movie_ratings_query.sql';
 my_query <- paste(readLines(my_query), collapse='\n')
 ```
 
@@ -44,16 +49,12 @@ my_query <- paste(readLines(my_query), collapse='\n')
 
 ```{r}
 movie_ratings <- dbGetQuery(mydb, my_query)
-movie_ratings
 ```
 
 ## My final data frame
 
 ```{r}
-head(movie_ratings)
-
-# uncomment for full data frame
-# movie_ratings
+movie_ratings
 ```
 
 
@@ -62,5 +63,7 @@ head(movie_ratings)
 ```{r}
 dbDisconnect(mydb)
 ```
+
+
 
 
