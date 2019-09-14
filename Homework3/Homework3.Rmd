@@ -1,0 +1,205 @@
+---
+title: 'DATA 607 - Homework #3 - Zach Alexander'
+output: html_document
+---
+
+  ***
+  
+> Libraries used:  
+  
+```{r, warning=FALSE}
+library(stringr)
+library(knitr)
+```
+  
+  ***
+  
+> PROBLEM #3: Copy the introductory example. The vector 'name' stores the extracted names.  
+
+  
+  **Reading in variables from the text:**  
+```{r}
+raw.data <-"555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555-6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson, Homer5553642Dr. Julius Hibbert"
+
+name <- unlist(str_extract_all(raw.data, "[[:alpha:]., ]{2,}"))
+phone <- unlist(str_extract_all(raw.data, "\\(?(\\d{3})?\\)?(-| )?\\d{3}(-| )?\\d{4}"))
+```
+
+
+  ***
+  **Problem #3.1. Use the tools of this chapter to rearrange the vector so that all elements conform to the standard first_name last_name.**  
+
+```{r}
+## The following steps put the names into first_name last_name order, but also remove second names and titles
+
+# remove the letter indicating the second name ("Burns, C. Mongomery" to "Burns, Montgomery")
+name_2 <- unlist(str_replace(name, " \\w{1}\\.", ""))
+
+# for names with commas, locate and flip from last, first to first last
+name_3 <- unlist(str_replace(name_2, "(\\w+),\\s(\\w+)", "\\2 \\1"))
+
+# remove titles
+just_first_last_name <- unlist(str_replace(name_3, "\\w{1,}\\. ", ""))
+
+# name vector with just first_name and last_name
+just_first_last_name
+```
+
+```{r}
+## The following steps put the names into first_name last_name order, and include second names and titles in proper order
+
+# locate name with a second name and a comma separating last and first, flip the order to first and last ("Burns, C. Montgomery" to "C. Montgomery Burns")
+name_5 <- unlist(str_replace(name, "(\\w+),(\\s(\\w).\\s\\w+)", "\\2 \\1"))
+
+# take this same character and flip the first and second parts so the second name is in the middle ("C. Montgomery Burns" to "Montgomery C. Burns")
+name_6 <- unlist(str_replace(name_5, "(\\s\\w.\\s)(\\w+)", "\\2\\1"))
+
+# locate name with a comma separating last and first, flip the order to first and last ("Simpson, Homer" to "Homer Simpson")
+name_7 <- unlist(str_replace(name_6, "(\\w+),\\s(\\w+)", "\\2 \\1"))
+
+# remove extra spaces between names
+first_last_name_extra <- unlist(str_replace(name_7, "\\s{2}", " "))
+
+first_last_name_extra
+```
+
+
+  ***
+  **Problem #3.2. Construct a logical vector indicating whether a character has a title (i.e., Rev. and Dr.).**  
+
+```{r}
+has_title <- unlist(str_detect(name, "(\\w+).\\s\\w+\\s\\w+"))
+has_title
+```
+
+
+  ***
+  **Problem #3.3. Construct a logical vector indicating whether a character has a second name.**  
+  
+
+```{r}
+has_second_name <- unlist(str_detect(name, "\\w+,\\s\\w.\\s\\w+"))
+has_second_name
+```
+
+
+  
+  **You can find all three solutions in the following data frame:**  
+  
+
+```{r}
+final_table <- data.frame(name, just_first_last_name, first_last_name_extra, has_title, has_second_name)
+kable(final_table)
+```
+
+  ***
+
+> PROBLEM #4 Describe the types of strings that conform to the following regular expressions and construct an example that is matched by the regular expression.  
+
+
+  
+  **Problem #4.1**  
+```{r}
+expression <- "[0-9]+\\$"
+
+# The description of the expression: At least one number followed by a "$" sign.
+
+examples <- c("873212233$", "3$", "abd3ek1$")
+
+# Using str_detect, these should return TRUE if all examples abide by the regular expression criteria
+str_detect(examples, expression)
+```
+
+
+  ***
+  **Problem #4.2**  
+```{r}
+expression <- "\\b[a-z]{1,4}\\b"
+
+# The description of the expression: A string of 1 to 4 lowercase letters. The string length has to be at least one lowercase letter, and no more than 4 lowercase letters. There can be no uppercase characters.
+
+examples <- c("dgfg", "road", "help")
+
+# Using str_detect, these should return TRUE if all examples abide by the regular expression criteria
+str_detect(examples, expression)
+```
+
+
+  ***
+  **Problem #4.3**  
+```{r}
+expression <- ".*?\\.txt$"
+
+# The description of the expression: Any string pattern, but is also optional, followed by ".txt" at the very end of the string - the "$" denotes the end of the string.
+
+examples <- c(".txt", "dafd$#@;.txt", "adas45322.txt")
+
+# Using str_detect, these should return TRUE if all examples abide by the regular expression criteria
+str_detect(examples, expression)
+```
+
+
+  ***
+  **Problem #4.4**  
+```{r}
+expression <- "\\d{2}/\\d{2}/\\d{4}"
+
+# The description of the expression: Two digits, followed by a slash (/), followed by two digits, followed by a slash (/), followed by four digits. Format = xx/xx/xxxx.
+
+examples <- c("12/23/2018", "04/23/1980", "05/12/1990")
+
+# Using str_detect, these should return TRUE if all examples abide by the regular expression criteria
+str_detect(examples, expression)
+```
+
+
+  ***  
+  **Problem #4.5**  
+```{r}
+expression <- "<(.+?)>.+?</\\1>"
+
+# The description of the expression: One or more characters inside of <>, followed by another string of characters, followed by a string of characters the same way as the first set, inside of <>, however this set has a "/" at the beginning of the string inside of <>. For instance, this format runs the pattern of html markup <div>Something</div>.
+
+examples <- c("<div>Something</div>", "<section>Test paragraph</section>", "<html><body></body></html>")
+
+# Using str_detect, these should return TRUE if all examples abide by the regular expression criteria
+str_detect(examples, expression)
+```
+
+  ***
+  
+  > EXTRA CREDIT: The following code hides a secret message. Crack it with R and regular expressions. Hint: Some of the characters are more revealing that others! The code snippet is also available in the materials at www.r-datacollection.com.
+  
+  ***
+  
+###### (I had some help separating the final 'concatString' (see below) by referencing [this source.](https://stackoverflow.com/questions/35542346/r-using-regmatches-to-extract-certain-characters) This helped me identify the periods in the secret code, which I eventually replaced with spaces.)  
+
+  ***
+  
+```{r}
+secret_message <- "clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0TanwoUwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigOd6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr"
+
+# a couple tests using regular expressions
+
+# extract all letters, not case sensitive
+all_letters <- unlist(str_extract_all(secret_message, "[[:alpha:]]{1,}"))
+
+# extract all digits
+all_digits <- unlist(str_extract_all(secret_message, "[[:digit:]]{1,}"))
+
+# extract all lowercase letters
+all_lowercase_letters <- unlist(str_extract_all(secret_message, "[[:lower:]]{1,}"))
+
+# extract all uppercase letters
+all_uppercase_letters <- unlist(str_extract_all(secret_message, "[[:upper:]]{1,}"))
+
+# after referring to some help from other sources, I noticed that periods also can be extracted to eventualy remove spaces.
+all_uppercase_letters_and_periods <- unlist(str_extract_all(secret_message, "[[:upper:].]"))
+
+# found the secret message! I also noticed that periods can also be extracted to eventually make spaces in the final code. Let's clean it up a bit:
+concatString <- paste(all_uppercase_letters_and_periods, collapse = "")
+
+# replace all the periods with spaces to create the final solution:
+solution <- str_replace_all(concatString, "[.]", " ")
+solution
+```

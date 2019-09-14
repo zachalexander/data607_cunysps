@@ -54,3 +54,6 @@ has_second_name <- unlist(str_detect(name, "\\w+,\\s\\w.\\s\\w+"))
 
 final_table <- data.frame(name, just_first_last_name, first_last_name_extra, has_title, has_second_name)
 final_table
+
+
+
