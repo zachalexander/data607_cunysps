@@ -66,7 +66,7 @@ for(i in 6:12) {
 
 chess_ratings_df$average_opp_rating <- rowMeans(chess_ratings_df[,6:12], na.rm = TRUE)
 
-
+write.csv(chess_ratings_df, file = 'C://Users/zalexander/Desktop/data607_cunysps/Project1/chess_ratings.csv')
 
 
 
