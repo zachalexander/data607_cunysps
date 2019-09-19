@@ -6,7 +6,6 @@ player_names <- unlist(str_extract_all(chess_data, '([:upper:]+\\s[:upper:]+(\\s
 player_names <- player_names[player_names != "USCF ID"]
 player_names <- str_to_title(player_names)
 
-
 location <- unlist(str_extract_all(chess_data, '(\n)\\s\\s\\s[:upper:]+'))
 location <- unlist(str_replace_all(location, '^\\s+|\\s+$', ""))
 
@@ -26,34 +25,46 @@ opponents <- unlist(str_replace_all(opponents, '\\|', '\\,'))
 opponents <- unlist(str_replace_all(opponents, '\\,{2,}', '\\,'))
 opponents <- unlist(str_replace_all(opponents, '(\\,$)', ''))
 opponents <- unlist(str_replace_all(opponents, '^\\,', ''))
+tempdf <- data.frame(V1 = opponents)
 
-column_headers <- c('game1', 'game2', 'game3', 'game4', 'game5')
-
-# test <- function(){
-#   for(i in column_headers){
-#     column_headers[i] <- unlist(str_extract(opponents, '\\d+'))
-#     opponents <- unlist(str_replace(opponents, '\\d+\\|', ''))
-#   }
-# }
-# test()
-# game1 <- unlist(str_extract(opponents, '(\\d+)'))
-# opponents <- unlist(str_replace(opponents, '\\d+\\|', ''))
-
+for(i in 1:7){
+  tempdf[, paste0('game', i)] <- sapply(strsplit(as.character(tempdf$V1),','), "[", i)
+}
 
 
 chess_ratings_df <- data.frame(player_name = player_names, 
-                               location = location,
+                               player_state = location,
                                total_points = total_points,
-                               pre_rating = pre_rating, 
-                               post_rating = post_rating)
+                               player_pre_rating = pre_rating, 
+                               player_post_rating = post_rating,
+                               game1 = tempdf$game1,
+                               game2 = tempdf$game2,
+                               game3 = tempdf$game3,
+                               game4 = tempdf$game4,
+                               game5 = tempdf$game5,
+                               game6 = tempdf$game6,
+                               game7 = tempdf$game7)
 
-chess_ratings_df$pre_rating <- as.numeric(as.character(chess_ratings_df$pre_rating))
-chess_ratings_df$post_rating <- as.numeric(as.character(chess_ratings_df$post_rating))
+chess_ratings_df$player_pre_rating <- as.numeric(as.character(chess_ratings_df$player_pre_rating))
+chess_ratings_df$player_post_rating <- as.numeric(as.character(chess_ratings_df$player_post_rating))
 chess_ratings_df$total_points <- as.numeric(as.character(chess_ratings_df$total_points))
+chess_ratings_df$game1 <- as.numeric(as.character(chess_ratings_df$game1))
+chess_ratings_df$game2 <- as.numeric(as.character(chess_ratings_df$game2))
+chess_ratings_df$game3 <- as.numeric(as.character(chess_ratings_df$game3))
+chess_ratings_df$game4 <- as.numeric(as.character(chess_ratings_df$game4))
+chess_ratings_df$game5 <- as.numeric(as.character(chess_ratings_df$game5))
+chess_ratings_df$game6 <- as.numeric(as.character(chess_ratings_df$game6))
+chess_ratings_df$game7 <- as.numeric(as.character(chess_ratings_df$game7))
 
 
+for(i in 6:12) {
+  for(j in 1:64) {
+    value <- chess_ratings_df[,i][j]
+    chess_ratings_df[,i][j] <- chess_ratings_df$player_pre_rating[value]
+  }
+}
 
-
+chess_ratings_df$average_opp_rating <- rowMeans(chess_ratings_df[,6:12], na.rm = TRUE)
 
 
 
