@@ -66,6 +66,10 @@ for(i in 6:12) {
 
 chess_ratings_df$average_opp_rating <- rowMeans(chess_ratings_df[,6:12], na.rm = TRUE)
 
+chess_ratings_df$rating_difference <- chess_ratings_df$player_post_rating - chess_ratings_df$player_pre_rating
+chess_ratings_df$change_pos <- ifelse(chess_ratings_df$rating_difference >=0, TRUE, FALSE)
+chess_ratings_df$rating_difference_sqr <- sqrt((chess_ratings_df$rating_difference ^ 2))
+
 write.csv(chess_ratings_df, file = 'C://Users/zalexander/Desktop/data607_cunysps/Project1/chess_ratings.csv')
 
 
