@@ -1,0 +1,240 @@
+---
+title: 'Data 607 - Project #1'
+author: "Zach Alexander"
+date: "9/22/2019"
+output: html_document
+---
+
+#### Libraries used
+
+```{r, warning=FALSE, comment=FALSE, results=FALSE}
+library(stringr)
+library(knitr)
+```
+
+***
+
+#### Reading the text file from GitHub into R
+
+**First, I read in the text file from my GitHub account - I saved it from Blackboard initially, and then used R to read it into my project code.**
+
+```{r}
+chess_data <- paste(readLines("https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Project1/chess_ratings.txt"), collapse = '\n')
+```
+
+***
+
+#### Using Regular Expressions
+
+**Next, I wanted to take the long string and use regular expressions to extract the important information. I initally looked for isolating the player names. Since all of them are in uppercase format, I utilized this as a way to save them into a vector.**
+
+```{r pressure}
+player_names <- unlist(str_extract_all(chess_data, '([:upper:]+\\s[:upper:]+(\\s[:upper:]+)?(\\s[:upper:]+)?)'))
+
+# remove the top value since it's not a name
+player_names <- player_names[player_names != "USCF ID"]
+
+# change to 'proper' case
+player_names <- str_to_title(player_names)
+head(player_names)
+```
+
+**For Player's State (location), Pre-rating, Total Points, and Post-rating, I also used regular expressions to store this specific information in vectors. See below for my code:**
+
+```{r}
+# found that each player's state could be extracted through this regular expression combination
+location <- unlist(str_extract_all(chess_data, '(\n)\\s\\s\\s[:upper:]+'))
+location <- unlist(str_replace_all(location, '^\\s+|\\s+$', ""))
+head(location)
+```
+
+```{r}
+# found that each player's pre-rating could be extracted through this regular expression combination
+pre_rating <- unlist(str_extract_all(chess_data, '(R:)\\s{1,}\\d+'))
+pre_rating <- unlist(str_replace_all(pre_rating, '(R:)\\s', ""))
+head(pre_rating)
+```
+
+```{r}
+# found that each player's post-rating could be extracted through this regular expression combination (used later in data visualization)
+post_rating <- unlist(str_extract_all(chess_data, '(->)(\\s{1,})?\\d+'))
+post_rating <- unlist(str_replace_all(post_rating, '(->)(\\s)?', ""))
+```
+
+```{r}
+# found that each player's total points could be extracted through this regular expression combination
+total_points <- unlist(str_extract_all(chess_data, '(\\d\\.\\d)'))
+head(total_points)
+```
+
+***
+
+#### Dealing with the player opponent data
+
+**Once the above information was isolated and stored in vectors, I needed to find a way to grab the results from the tournament for each player in a string. To do this, I used a specific regular expression that was able to find the structure of just the result and the opponent number for each players' games. See below: **
+
+```{r}
+results <- unlist(str_extract_all(chess_data, '(\\d\\.\\d\\s{2}(\\|[:upper:]\\s{2}(\\s)?(\\s)?(\\d+)?){1,})'))
+results <- unlist(str_replace(results, '\\d\\.\\d\\s{2}\\|', ''))
+kable(head(results))
+```
+
+
+#### Storing these in a separate data frame
+
+**After grabbing the results, I needed to clean them up a bit in order to eventually replace the opponent number with their pre-tournament elo rating. I then stored this information in a temporary dataframe in order to bind it together with the full data later (stored in 'tempdf'):**
+```{r}
+opponents <- unlist(str_replace_all(results, '[:upper:]\\s+', ''))
+opponents <- unlist(str_replace_all(opponents, '\\|', '\\,'))
+opponents <- unlist(str_replace_all(opponents, '\\,{2,}', '\\,'))
+opponents <- unlist(str_replace_all(opponents, '(\\,$)', ''))
+opponents <- unlist(str_replace_all(opponents, '^\\,', ''))
+tempdf <- data.frame(V1 = opponents)
+kable(head(tempdf))
+```
+
+
+***
+
+**Once the temporary dataframe had just the opponents data in one column, I wanted to split the strings and create separate columns for each opponent based on the game. To do this, I created a for loop:**
+
+```{r}
+# used a for loop here to iterate over V1, using strsplit and the comma to separate out the opponent numbers into the appropriate columns. This also stored N/As in columns where a player didn't play an opponent.
+for(i in 1:7){
+  tempdf[, paste0('game', i)] <- sapply(strsplit(as.character(tempdf$V1),','), "[", i)
+}
+kable(head(tempdf))
+```
+
+
+***
+
+#### Merging data into one data frame
+
+**Now that the opponent data was stored correctly in a separate dataframe, I decided to merge this data in with the rest of my vectors to create one large dataframe ('chess_ratings_df'):**
+
+```{r}
+chess_ratings_df <- data.frame(player_name = player_names, 
+                               player_state = location,
+                               total_points = total_points,
+                               player_pre_rating = pre_rating, 
+                               player_post_rating = post_rating,
+                               game1 = tempdf$game1,
+                               game2 = tempdf$game2,
+                               game3 = tempdf$game3,
+                               game4 = tempdf$game4,
+                               game5 = tempdf$game5,
+                               game6 = tempdf$game6,
+                               game7 = tempdf$game7)
+
+kable(head(chess_ratings_df))
+```
+
+
+***
+
+
+#### Changing the data types from strings to numbers
+
+**In order to do proper average calculations later on, I needed to make sure my data types were correct. For this, I changed the character vectors to numeric vectors:**
+
+```{r}
+
+# just to be safe, I changed the data types for these columns to numbers
+chess_ratings_df$player_pre_rating <- as.numeric(as.character(chess_ratings_df$player_pre_rating))
+chess_ratings_df$player_post_rating <- as.numeric(as.character(chess_ratings_df$player_post_rating))
+chess_ratings_df$total_points <- as.numeric(as.character(chess_ratings_df$total_points))
+chess_ratings_df$game1 <- as.numeric(as.character(chess_ratings_df$game1))
+chess_ratings_df$game2 <- as.numeric(as.character(chess_ratings_df$game2))
+chess_ratings_df$game3 <- as.numeric(as.character(chess_ratings_df$game3))
+chess_ratings_df$game4 <- as.numeric(as.character(chess_ratings_df$game4))
+chess_ratings_df$game5 <- as.numeric(as.character(chess_ratings_df$game5))
+chess_ratings_df$game6 <- as.numeric(as.character(chess_ratings_df$game6))
+chess_ratings_df$game7 <- as.numeric(as.character(chess_ratings_df$game7))
+```
+
+***
+
+#### Using loops to substitute opponent numbers with their pre-tournament elo ratings
+
+**To substitute the opponent number with their pre-tournament elo rating, I created another set of for loops:**
+```{r}
+# while iterating over the game columns, iterate over the player opponent number and match it with the opponent's pre-tournament elo rating. Then replace the opponent number with their elo rating.
+for(i in 6:12) {
+  for(j in 1:64) {
+    value <- chess_ratings_df[,i][j]
+    chess_ratings_df[,i][j] <- chess_ratings_df$player_pre_rating[value]
+  }
+}
+
+kable(head(chess_ratings_df))
+```
+
+
+***
+
+#### Taking the average of the pre-tournament elo ratings
+
+**Finally, after the pre-tournament elo ratings had been substituted in, I could then take the average of these ratings across the seven games of the tournament to obtain the Average Pre Chess Rating of Opponents:**
+
+```{r}
+chess_ratings_df$average_opp_rating <- round(rowMeans(chess_ratings_df[,6:12], na.rm = TRUE), digits = 0)
+```
+
+
+***
+
+#### For future data visualization work (see at the end), I created a few more columns in the 'chess_ratings_df' data frame.
+
+**For my future data visualization, I decided to create a few more columns. I wanted to see the difference in player pre-tournament rating and player post-tournament rating to see who had the highest elo rating gain. Additionally, I created a column on the conditional of whether or not the rating difference between pre and post was negative or positive. Finally, for charting purposes, I created one final column so that there weren't any negative numbers for the rating differences, by squaring and taking the square root of the difference (will be used later):**
+```{r}
+chess_ratings_df$rating_difference <- chess_ratings_df$player_post_rating - chess_ratings_df$player_pre_rating
+chess_ratings_df$change_pos <- ifelse(chess_ratings_df$rating_difference >=0, TRUE, FALSE)
+chess_ratings_df$rating_difference_sqr <- sqrt((chess_ratings_df$rating_difference ^ 2))
+```
+
+***
+***
+
+#### The final data frame to be exported to a csv file
+
+**In the end, you can see the data frame required for the project ('final_df').**
+
+```{r}
+final_df <- chess_ratings_df[, c(1:4, 13)]
+kable(final_df)
+```
+
+
+**Here's the syntax for exporting it to my local computer. However, feel free to change the filepath to export it anywhere else.**
+
+```{r}
+filename <- '~/Desktop/grad_school/data_607_cunysps/data607_cunysps/Project1/chess_ratings.csv'
+write.csv(final_df, file = filename)
+```
+
+***
+***
+
+#### Data Visualization
+
+**To go a step further with this project, I created a micro-site using a Javascript Framework (Angular), as well as Google Firebase to deploy this to the internet. At this link:** 
+
+**[https://data606-chess.firebaseapp.com/](https://data606-chess.firebaseapp.com/)**  
+
+**...you'll be able to find a 'mock' newspaper article that display a data visualizations and tables using d3.js (charting library for Javascript). The data visualization displays data on hover, as well as more data if you click the associated button -- to show +/- elo ratings.**  
+
+**As a quick note, the url says 'data606' but it should be data607 (I made a typo on the setup - sorry about that!)**
+
+* Steps I used to create my data visualization  
+  + Created an Angular project using the angular-cli
+  + Created a firebase project and deployed my Angular project using firebase
+  + Took my csv file that I created in R, and converted the data to json format
+  + Using Javascript and Typescript, I created a d3.js bar chart displaying some of this data
+  + I used boostrap (css library) to generate the tables
+
+**If interested, you can find the files for this on my Github as well, at [this repository](https://github.com/zachalexander/data607_chess_elo).**
+
+
+
+
