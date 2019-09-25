@@ -29,8 +29,8 @@ delay_prop_df <- airline_data %>%
   rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
   mutate(Airlines = c("ALASKA", "ALASKA", "AMWEST", "AMWEST")) %>% 
   gather("Location", "Arrivals", 3:7) %>% 
-  spread(Status, Arrivals) %>% 
-  mutate(delay_prop = delayed / `on time`) %>% 
+  spread(Status, Arrivals)  %>% 
+  mutate(totalflights = delayed + `on time`, delay_prop = delayed / totalflights) %>% 
   select(Airlines, Location, delay_prop)
 
 kable(delay_prop_df)
@@ -38,8 +38,11 @@ kable(delay_prop_df)
 
 
 ```{r}
-plot <- ggplot(delay_prop_df, aes(Location, delay_prop, fill=Airlines))
-plot <- plot + geom_bar(stat = "identity", position = 'dodge')
+plot <- ggplot(delay_prop_df, aes(x = Airlines, y = delay_prop, fill=Airlines))
+plot <- plot + scale_y_continuous(labels = scales::percent)
+plot <- plot + theme(legend.position = "none")
+plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack")
+plot <- plot + facet_grid(. ~ Location)
 plot
 ```
 
@@ -76,7 +79,6 @@ airline_data %>%
   rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
   mutate(Airlines = c("ALASKA", "ALASKA", "AMWEST", "AMWEST")) %>% 
   gather("Location", "Arrivals", 3:7) %>% 
-  arrange(Airlines, Status) %>% 
-  filter(Status == "delayed")
+  arrange(Airlines, Status)
 ```
 
