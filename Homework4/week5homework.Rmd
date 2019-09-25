@@ -1,0 +1,82 @@
+---
+title: "DATA 607 - Week 5 Homework"
+author: "Zach Alexander"
+date: "September 25, 2019"
+output: html_document
+---
+
+#### Libraries Used  
+
+```{r, warning=FALSE, comment=FALSE, results=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+```
+
+#### Reading in the csv data from GitHub
+
+```{r}
+airline_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework4/airlinedata.csv')
+kable(airline_data)
+```
+
+#### Looking at delay proportions
+
+```{r}
+delay_prop_df <- airline_data %>% 
+  drop_na() %>%
+  rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
+  mutate(Airlines = c("ALASKA", "ALASKA", "AMWEST", "AMWEST")) %>% 
+  gather("Location", "Arrivals", 3:7) %>% 
+  spread(Status, Arrivals) %>% 
+  mutate(delay_prop = delayed / `on time`) %>% 
+  select(Airlines, Location, delay_prop)
+
+kable(delay_prop_df)
+```
+
+
+```{r}
+plot <- ggplot(delay_prop_df, aes(Location, delay_prop, fill=Airlines))
+plot <- plot + geom_bar(stat = "identity", position = 'dodge')
+plot
+```
+
+```{r}
+long_data <- airline_data %>% 
+  drop_na() %>%
+  rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
+  mutate(Airlines = c("ALASKA", "ALASKA", "AMWEST", "AMWEST")) %>% 
+  gather("Location", "Arrivals", 3:7) %>% 
+  spread(Status, Arrivals)
+
+kable(long_data)
+```
+
+```{r}
+mean_compare_df <- delay_prop_df %>% 
+  spread(Airlines, delay_prop) %>% 
+  summarise(mean_alaska = mean(ALASKA), mean_amwest = mean(AMWEST)) %>% 
+  gather("Airline", "Mean Proportion", 1:2)
+
+kable(mean_compare_df)
+```
+
+```{r}
+plot <- ggplot(mean_compare_df, aes(Airline, `Mean Proportion`))
+plot <- plot + geom_bar(stat = "identity", position = 'dodge')
+plot <- plot + scale_x_discrete(labels=c("Alaska", "AMWest"))
+plot
+```
+
+```{r}
+airline_data %>% 
+  drop_na() %>%
+  rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
+  mutate(Airlines = c("ALASKA", "ALASKA", "AMWEST", "AMWEST")) %>% 
+  gather("Location", "Arrivals", 3:7) %>% 
+  arrange(Airlines, Status) %>% 
+  filter(Status == "delayed")
+```
+
