@@ -5,31 +5,40 @@ date: "September 25, 2019"
 output: html_document
 ---
 
-#### Libraries Used  
+
+***
+
+### Libraries Used  
 
 ```{r, warning=FALSE, comment=FALSE, results=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(knitr)
+library(kableExtra)
 library(scales)
 ```
 
-#### Reading in the csv data from GitHub
+***
+
+### Reading in the csv data from GitHub
 
 ```{r}
 airline_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework4/airlinedata.csv')
-kable(airline_data)
+# printing out data from raw csv
+airline_data
 ```
 
 
 ***
 
-#### Looking at delay percentages
+### Looking at delay percentages
 
-**Initially, I thought it would be helpful to take a look at percentages of delays for each location.**  
+Initially, I thought it would be helpful to take a look at percentages of delays for each location.  
 
-  **You can see from the data wrangling below, I first dropped the blank row, renamed some of the column headers, added "Alaska" and "AMWest" for the rows in the first column to make wrangling easier in the future, and then did a series of gather and spread functions in order to manipulate the data into a form conducive for calculating percentages. Then, I chained the percentage calculation and selected only the relevant columns for the following visualization. You can see the output of the data frame I created below, as 'delay_prct_df'.**
+You can see from the data wrangling below, I first dropped the blank row, renamed some of the column headers, added "Alaska" and "AMWest" for the rows in the first column to make wrangling easier in the future, and then did a series of gather and spread functions in order to manipulate the data into a form conducive for calculating percentages. Then, I chained the percentage calculation and selected only the relevant columns for the following visualization. You can see the output of the data frame I created below, as 'delay_prct_df'.  
+
+***
 
 ```{r}
 delay_prct_df <- airline_data %>% 
@@ -38,42 +47,71 @@ delay_prct_df <- airline_data %>%
   mutate(Airlines = c("Alaska", "Alaska", "AMWest", "AMWest")) %>% 
   gather("Location", "Arrivals", 3:7) %>% 
   spread(Status, Arrivals)  %>% 
-  mutate(totalflights = delayed + `on time`, delay_prct = delayed / totalflights) %>% 
-  select(Airlines, Location, delay_prct)
+  mutate(totalflights = delayed + `on time`, delay_prct = delayed / totalflights) %>%
+  mutate(prct_format = percent(delay_prct)) %>%
+  select(Airlines, Location, delay_prct, prct_format)
 
-kable(delay_prct_df)
+kable(delay_prct_df, align = rep('c', 4)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
 ```
 
-**Now that the 'delay_prct_df' data frame was in a convenient format to plot, I used ggplot to plot these delay percentages by airline and city (location).**
+
+***
+
+### Plotting delay percentages by location
+
+
+Now that the 'delay_prct_df' data frame was in a convenient format to plot, I used ggplot to plot these delay percentages by airline and city (location).
 
 ```{r}
 plot <- ggplot(delay_prct_df, aes(x = Airlines, y = delay_prct, fill=Airlines))
 plot <- plot + scale_y_continuous(labels = scales::percent)
 plot <- plot + theme(legend.position = "none")
-plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack") + ylab("Percent delayed flights") + xlab("Airline")
+plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack", color="#dddddd") + ylab("Percent delayed flights") + xlab("Airline")
 plot <- plot + facet_grid(. ~ Location)
+plot <- plot + geom_text(aes(label=prct_format), vjust=1.5, hjust=0.45, position = position_dodge(width = 0.9), color="white", fontface="bold")
 plot
 ```
 
-**From the above plot, we can see that AMWest Airlines in San Francisco had the highest percentage of delayed flights than any other location in the dataset. Additionally, Alaska Airlines had the lowest percentage of delayed flights in Pheonix.**  
+From the above plot, we can see that AMWest Airlines in San Francisco had the highest percentage of delayed flights than any other location in the dataset. Additionally, Alaska Airlines had the lowest percentage of delayed flights in Pheonix.  
 
 
 ***
 
+I thought it would be helpful to also display this data as a stacked bar chart by location to get a better understanding of the total delays by this variable, and to confirm the above, that San Francisco had the highest percentage of delayed flights, when looking at the combined delayed flight percentages across both airlines. You can find a plot of this data below in a stacked bar chart.
+
 ```{r}
-long_data <- airline_data %>% 
+stacked_bar_df <- airline_data %>% 
   drop_na() %>%
   rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
   mutate(Airlines = c("Alaska", "Alaska", "AMWest", "AMWest")) %>% 
   gather("Location", "Arrivals", 3:7) %>% 
-  spread(Status, Arrivals)
-
-kable(long_data)
+  spread(Status, Arrivals) %>% 
+  mutate(totalflights = delayed + `on time`, delay_prct = delayed / totalflights) %>%
+    mutate(prct_format = percent(delay_prct)) %>%
+  select(Airlines, Location, delay_prct, prct_format)
 ```
+
+```{r}
+library(RColorBrewer)
+
+# Small multiple
+ggplot(stacked_bar_df, aes(fill=Airlines, y=delay_prct, x=Location)) + xlab("Location") + ylab("Percent of flights that were delayed") +
+    geom_bar(position="stack", stat="identity", color="#dddddd") +
+    scale_fill_brewer(palette = "YlGnBu") +
+    geom_text(aes(label=prct_format), vjust=2.5, hjust=0.5, position = position_stack(), color="black", fontface="bold")
+
+
+```
+
+This is indeed confirmed. San Francisco had the highest percentage of delayed flights out of all other locations in the dataset, and Pheonix had the lowest percentage of delayed flights relative to all other locations in the dataset.  
+
 
 ***
 
-**Next, I thought it would be interesting to take a look at the average number of delays experienced in each location. For this, I did the same data wrangling practices as above, until I decided to group the data by location and then summarise with mean calculations by location. See below:**  
+### Average number of delays experience in each location
+
+Next, I thought it would be interesting to take a look at the *average* number of delays experienced in each location. For this, I did the same data wrangling practices as above, until I decided to group the data by location and then summarise with mean calculations by location. See below:  
 
 ```{r}
 num_delays_loc_df <- airline_data %>% 
@@ -85,21 +123,50 @@ num_delays_loc_df <- airline_data %>%
   group_by(Location) %>% 
   summarise(`Mean flights delayed` = mean(delayed))
 
-kable(num_delays_loc_df)
+kable(num_delays_loc_df, align = rep('c', 2)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
   
 ```
-
-**From this plot below, we can see that when taking the average delays across both airlines by location, Pheonix had the highest average of delays relative to the other cities in the dataset. An important note, this doesn't necessarily inform us that Pheonix experienced delays more frequently than other locations, but simply had the highest number of delays, on average.**
-
 ```{r}
-plot <- ggplot(num_delays_loc_df, aes(x = reorder(Location, -`Mean flights delayed`), y = `Mean flights delayed`))
-plot <- plot + geom_bar(stat = "identity", position = 'dodge') + ylab("Mean number of flights delays") + xlab("Location")
-plot
+g <- ggplot(num_delays_loc_df, aes(x = reorder(Location, `Mean flights delayed`), y = `Mean flights delayed`, label=`Mean flights delayed`)) + 
+  geom_point(stat="identity", colour="#111111", fill="#00BFC4", stroke=2, size=2) + 
+  geom_segment(aes(x=Location, xend=Location, y=0, yend=`Mean flights delayed`), color="#111111") +
+  geom_text(color="#111111", hjust=-0.5, size=4, fontface="bold") + ylim(0, 250) +
+  xlab("Location") +
+  coord_flip()
+
+g
+
 ```
+
 
 ***
 
-**We can also take a look at other delay summary statistics for Alaska Airlines and AMWest Airlines. To do this, we can manipulate the data frame similar to above, however instead of grouping by location, we group by Airline and then summarise this data to create columns that show the number of total delays, total flights, the mean number of delays, the location with the least delays the location with the most delays, and the overall percentage of delays, by airline.**
+From this plot above, we can see that when taking the average delays across both airlines by location, Pheonix had the highest average number of flights that were delayed relative to the other cities in the dataset. Wait a minute? How can Pheonix have the highest average number of flights that were delayed relative to all other cities but also have the lowest percentage of delayed flights out of all other cities in the dataset? Well, as a reminder, the percentage of delayed flights is take from the total number of flights. See below for some data wrangling:
+
+```{r}
+total_flights_df <- airline_data %>% 
+  drop_na() %>%
+  rename("Airlines" = X, "Status" = X.1, "Los_Angeles" = Los.Angeles, "San_Diego" = San.Diego, "San_Francisco" = San.Francisco) %>% 
+  mutate(Airlines = c("Alaska", "Alaska", "AMWest", "AMWest")) %>% 
+  gather("Location", "Arrivals", 3:7) %>% 
+  spread(Status, Arrivals)  %>% 
+  mutate(totalflights = delayed + `on time`) %>% 
+  group_by(Location) %>% 
+  summarise(`Total Flights` = sum(totalflights)) %>% 
+  arrange(-`Total Flights`)
+
+kable(total_flights_df, align = rep('c', 2)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
+```
+
+As you can see in the above table, since Pheonix had the highest total number of flights, it makes sense that the mean number of delayed flights was the highest and that the percentage of delayed flights out of the total number of flights is the lowest.  
+
+***
+
+### Summary statistics for both airlines
+
+We can also take a look at other delay summary statistics for Alaska Airlines and AMWest Airlines. To do this, we can manipulate the data frame similar to above, however instead of grouping by location, we group by Airline and then summarise this data to create columns that show the number of total delays, total flights, the mean number of delays, the location with the least delays the location with the most delays, and the overall percentage of delays, by airline.  
 
 ```{r}
 airline_stats_df <- airline_data %>% 
@@ -116,9 +183,13 @@ airline_stats_df <- airline_data %>%
             `Maximum Flights Delayed in a Location` = max(delayed),
             `Total Percent of Flights Delayed` = percent((sum(delayed) / sum(delayed + `on time`))))
 
-kable(airline_stats_df)
+kable(airline_stats_df, align = rep('c', 7)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
 
 ```
 
-**Interestingly, we can see that on average, AMWest had a higher number of mean flights that were delayed than Alaska Airlines, however the percentage of delayed flights out of total flights was higher for Alaska Airlines (~13%) relative to AMWest Airlines (~11%).**  
+Interestingly, we can see that on average, AMWest had a higher number of mean flights that were delayed than Alaska Airlines, however the percentage of delayed flights out of total flights was higher for Alaska Airlines (~13%) relative to AMWest Airlines (~11%). 
+
+***
+
 
