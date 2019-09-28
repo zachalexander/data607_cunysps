@@ -73,7 +73,7 @@ plot <- plot + geom_text(aes(label=prct_format), vjust=1.5, hjust=0.45, position
 plot
 ```
 
-From the above plot, we can see that AMWest Airlines in San Francisco had the highest percentage of delayed flights than any other location in the dataset. Additionally, Alaska Airlines had the lowest percentage of delayed flights in Pheonix.  
+From the above plot, we can see that AMWest Airlines in San Francisco had the highest percentage of delayed flights than any other location in the dataset. Additionally, Alaska Airlines had the lowest percentage of delayed flights in Pheonix. We can also see, that overall, it looks like AMWest had higher percentages of delayed flights at each location relative to Alaska Airlines.
 
 
 ***
@@ -111,7 +111,7 @@ This is indeed confirmed. San Francisco had the highest percentage of delayed fl
 
 ### Average number of delays experience in each location
 
-Next, I thought it would be interesting to take a look at the *average* number of delays experienced in each location. For this, I did the same data wrangling practices as above, until I decided to group the data by location and then summarise with mean calculations by location. See below:  
+Next, I thought it would be interesting to take a look at the *average number* of delays experienced in each location. For this, I did the same data wrangling practices as above, until I decided to group the data by location and then summarise with mean calculations by location. See below:  
 
 ```{r}
 num_delays_loc_df <- airline_data %>% 
@@ -142,7 +142,7 @@ g
 
 ***
 
-From this plot above, we can see that when taking the average delays across both airlines by location, Pheonix had the highest average number of flights that were delayed relative to the other cities in the dataset. Wait a minute? How can Pheonix have the highest average number of flights that were delayed relative to all other cities but also have the lowest percentage of delayed flights out of all other cities in the dataset? Well, as a reminder, the percentage of delayed flights is take from the total number of flights. See below for some data wrangling:
+From this plot above, we can see that when taking the average delays across both airlines by location, Pheonix had the highest average number of flights that were delayed relative to the other cities in the dataset. But, wait a minute! How can Pheonix have the highest average number of flights that were delayed relative to all other cities but also have the lowest percentage of delayed flights out of all other cities in the dataset? Well, as a reminder, the percentage of delayed flights is take from the total number of flights. See below for some data wrangling:
 
 ```{r}
 total_flights_df <- airline_data %>% 
@@ -160,7 +160,7 @@ kable(total_flights_df, align = rep('c', 2)) %>%
   kable_styling(bootstrap_options = c("striped"), full_width = F)
 ```
 
-As you can see in the above table, since Pheonix had the highest total number of flights, it makes sense that the mean number of delayed flights was the highest and that the percentage of delayed flights out of the total number of flights is the lowest.  
+As you can see in the above table, since Pheonix had the highest total *number* of flights, it makes sense that the mean number of delayed flights turned out to be highest at this location and that the *percentage* of delayed flights out of the total number of flights is the lowest.  
 
 ***
 
@@ -188,7 +188,7 @@ kable(airline_stats_df, align = rep('c', 7)) %>%
 
 ```
 
-Interestingly, we can see that on average, AMWest had a higher number of mean flights that were delayed than Alaska Airlines, however the percentage of delayed flights out of total flights was higher for Alaska Airlines (~13%) relative to AMWest Airlines (~11%). 
+Interestingly, we can see that on average, AMWest Airlines had a higher number of mean flights that were delayed than Alaska Airlines, however the percentage of delayed flights out of total flights was higher for Alaska Airlines (~13%) relative to AMWest Airlines (~11%). 
 
 ***
 
