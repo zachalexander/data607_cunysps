@@ -1,0 +1,46 @@
+---
+title: "Project 2 - Data 607"
+author: "Zach Alexander"
+date: "October 3, 2019"
+output: html_document
+---
+
+```{r, warning=FALSE, comment=FALSE, results=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(scales)
+library(stringr)
+library(anytime)
+```
+
+
+***
+***
+
+# Tidying Kickstarter Data
+
+
+### Reading data from csv into R
+
+```{r cars}
+kickstarter_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Project2/kickstarter.csv')
+# printing out data from raw csv
+head(kickstarter_data)
+```
+
+### Organizing columns, selecting relevant columns for analysis
+
+```{r}
+tmp <- unlist(str_extract_all(kickstarter_data$category, '\\"name":\\"\\w+'))
+tmp2 <- unlist(str_extract_all(kickstarter_data$profile, '\\"project_id"\\:\\d+'))
+kickstarter_data$category_cleaned <- unlist(str_extract_all(tmp, '([^\"]+$)'))
+kickstarter_data$project_id <- unlist(str_extract_all(tmp2, '([^\":]+$)'))
+kickstarter_data$created_at <- anydate(kickstarter_data$created_at)
+kickstarter_data$launched_at <- anydate(kickstarter_data$launched_at)
+kickstarter_data$state_changed_at <- anydate(kickstarter_data$state_changed_at)
+kickstarter_data$deadline <- anydate(kickstarter_data$deadline)
+```
+
