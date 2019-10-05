@@ -5,6 +5,8 @@ date: "October 3, 2019"
 output: html_document
 ---
 
+### Libraries Used in Project #2
+
 ```{r, warning=FALSE, comment=FALSE, results=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
@@ -14,24 +16,38 @@ library(kableExtra)
 library(scales)
 library(stringr)
 library(anytime)
+library(plotly)
+library(gapminder)
 ```
 
 
 ***
+
+# Dataset #1 - Kickstarter
+
 ***
 
-# Tidying Kickstarter Data
+### Questions to Answer
 
+> Diane found a great kickstarter data source that had some data to be cleaned/tidied in order to answer a few questions. Below are a few questions I answered after tidying the dataset:
 
-### Reading data from csv into R
+  + How do staff-picked projects influence the success of a project?
+  + Which projects tend to be more successful (looking at category)?
+  + What's the relationship between the state of the campaign and the total number of backers and length of campaign?
+  
+***
 
-```{r cars}
+### Reading the data from csv into R
+
+```{r}
 kickstarter_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Project2/kickstarter.csv')
-# printing out data from raw csv
-head(kickstarter_data)
 ```
 
-### Organizing columns, selecting relevant columns for analysis
+***
+
+### Using regular expressions and functions to fix data formats and extract important data from messy columns  
+
+In order to extract the category for each project, as well as the project ID, I used regular expressions to isolate the values I needed in the long object data types in columns 'category' and 'profile'. I stored these values in temporary variables and then did further extractions before adding them as new columns to the kickstarter dataset. Then, I turned the UNIX date-formatted values in multiple columns to more useful formats. I used the ['anytime'](https://cran.r-project.org/web/packages/anytime/anytime.pdf) package to help with this process.
 
 ```{r}
 tmp <- unlist(str_extract_all(kickstarter_data$category, '\\"name":\\"\\w+'))
@@ -42,5 +58,189 @@ kickstarter_data$created_at <- anydate(kickstarter_data$created_at)
 kickstarter_data$launched_at <- anydate(kickstarter_data$launched_at)
 kickstarter_data$state_changed_at <- anydate(kickstarter_data$state_changed_at)
 kickstarter_data$deadline <- anydate(kickstarter_data$deadline)
+kickstarter_data$usd_pledged <- round(as.numeric(as.character(format(kickstarter_data$usd_pledged, scientific = FALSE))), digits = 2)
 ```
 
+***
+
+### Creating a clean kickstarter dataset  
+
+I wanted to create a cleaner version of the kickstarter dataset, removing unhelpful columns. To do this, I used the 'select' function, and added an additional column that calculated the amount of time each campaign was active, by doing calculations on the data variables. The following table is the result.
+```{r}
+kickstarter_cleaned <- kickstarter_data %>% 
+  select(project_id, 
+         name, 
+         category_cleaned, 
+         created_at, 
+         launched_at,
+         goal,
+         usd_pledged, 
+         backers_count,
+         state_changed_at,
+         state,
+         staff_pick) %>% 
+  mutate(campaign_length = state_changed_at - created_at)
+
+kable(head(kickstarter_cleaned), align = rep('c', 12))%>% 
+  kable_styling(bootstrap_options = c("striped"))
+```
+
+***
+
+  > Question #1: How do staff-picked projects influence the success of a project?
+  
+  To work through this question, I used tidyr and dplyr functions to group, summarise, mutate, filter, arrange, and select the data I needed in order to find the percent successful campaigns based on whether or not campaigns were staff-picked.
+  
+```{r}
+staff_pick <- kickstarter_cleaned %>% 
+  group_by(staff_pick, state) %>% 
+  summarise(count = n()) %>% 
+  mutate(percent_of_total_state = round(count / sum(count), digits = 4)) %>% 
+  filter(state == 'successful') %>% 
+  select(staff_pick, state, percent_of_total_state) %>% 
+  arrange(desc(percent_of_total_state))
+
+kable(staff_pick, align = rep('c', 3)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
+```
+
+
+```{r}
+p <- staff_pick %>% 
+  mutate(percent_formatted = percent(percent_of_total_state))
+
+plot <- ggplot(p, aes(x = staff_pick, y = percent_of_total_state, fill=percent_of_total_state))
+plot <- plot + scale_y_continuous(labels = scales::percent)
+plot <- plot + theme(legend.position = "none")
+plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack", color="#dddddd") + ylab("Success rate") + xlab("Picked by staff?")
+plot <- plot + geom_text(aes(label=percent_formatted), vjust=2.5, hjust=0.45, position = position_dodge(width = 0.9), color="white", fontface="bold")
+plot
+
+```
+
+> Answer: From the plot above, as well as the table, we can see that Kickstarter campaigns that were staff-picked had a much higher percent success rate than those that were not picked by staff.
+
+***
+
+  > Question #2: Which projects tend to be more successful (looking at category)?
+  
+  To work through this question, I had to tidy the data in a way to calculate the success rate based on categories that I pulled from the original file. After summarizing the data similar to above, I then was able to group the data based on the categories and filter by successful campaigns and find the success rate out of the total campaigns per category. I then was interested in finding the categories that had high success rates, but also had a large number of campaigns in that category to support the high success rate. It's hard to judge whether or not a certain category has wide appeal if there are only a few campaigns to analyze. Therefore, I weighted those that had a success rate above 75%, as well as more than 30 campaigns in a category, as a safer judgement to being more appealing to potential donors. You can find this data plotted below. If you click the legend, you can add/remove data points and use more of plotly's features to examine the plot. There is also a tooltip if you hover over each point, which gives you the category information.
+  
+```{r}
+category_success <- kickstarter_cleaned %>% 
+  group_by(category_cleaned, state) %>% 
+  summarise(count = n()) %>% 
+  mutate(percent_of_total_state = round(count / sum(count), digits = 2)) %>% 
+  filter(state == 'successful') %>% 
+  select(category_cleaned, state, count, percent_of_total_state) %>% 
+  arrange(desc(percent_of_total_state), desc(count)) %>% 
+  rename("Number of Campaigns In Category" = count, "Success Rate" = percent_of_total_state) %>% 
+  mutate(coloration = ifelse(`Success Rate` > 0.75 & `Number of Campaigns In Category` > 30, 'Tend to Be More Successful', 'Either too few campaigns or low success rate'))
+
+p <- ggplot(category_success, aes(x=`Number of Campaigns In Category`, y=`Success Rate`, color = coloration, text = paste('Category: ', category_cleaned))) +
+  geom_point(fill = "#ffffff", pch = 21, size = 2, stroke = 0.5) +
+  labs(x="Number of campaigns per category", y = "Success rate per category") +
+  scale_color_manual(values = c("#bbbbbb", "#52854C"))
+
+p <- ggplotly(p) %>% layout(legend = list(orientation = "h", x = -0.5, y = 10))
+
+p
+
+```
+
+
+***
+
+All of the green dots in the plot above are also found in this chart below, arranged by success rate.
+
+```{r}
+
+top_categories <- category_success %>% 
+  filter(coloration == "Tend to Be More Successful") %>% 
+  rename("Category" = category_cleaned) %>% 
+  select(Category, `Number of Campaigns In Category`, `Success Rate`)
+
+kable(top_categories, align = rep('c', 5)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
+```
+
+***
+
+> Answer: As you can see, campaigns that fall under the categories of 'Shorts', 'Comic', 'Country' and 'Documentary' tend to have higher success rates. Additionally, those with engaging videos, powerful illustrations, or were catchy, seemed to have more appeal with potential donors. No statistical tests have been done to prove these claims though, so it would be interesting to dive deeper into these analysis to see if there are true differences between categories.
+
+***
+
+> Question #3: What's the relationship between the state of the campaign and the total number of backers and length of campaign?
+
+To work through this final question, I needed to summarize the total backers column and the campaign length column that I calculated earlier, and gather the two into one column in order to perform the visualization later.
+
+```{r}
+backers_length_df <- kickstarter_cleaned %>% 
+  group_by(state) %>%   
+  summarise("Total Backers (Mean)" = round(as.numeric(mean(backers_count)), digits = 0), "Campaign Length in Days (Mean)" =   round(as.numeric(mean(campaign_length)), digits = 0)) %>% 
+  gather('x', 'n', 2:3) %>% 
+  arrange(state)
+
+kable(backers_length_df, align = rep('c', 3)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
+```
+
+***
+
+After wrangling the data into a form that can be used for a facet bar plot, I was then able to plot the data below:  
+
+```{r warning=FALSE}
+plot <- ggplot(backers_length_df, aes(x = x, y = n, fill= x))
+plot <- plot + scale_y_continuous()
+plot <- plot + theme(legend.position = "right", legend.title = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title = element_blank())
+plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack", color="#dddddd") + xlab("Campaign State")
+plot <- plot + facet_grid(. ~ state)
+plot <- plot + geom_text(aes(label=n), vjust=-0.25, hjust=0.50, position = position_dodge(width = 0), color="black", fontface="bold")
+plot
+
+```
+
+> Answer: We can see, based on the state of the campaign that there is a wide discrepancy in the mean number of backers as well as the mean length of a campaign (in days). Successful campaigns seem to accumulate many more total backers, compared to all other states, and the mean total backers for both failed and canceled campaigns is much lower than their mean campaign length.
+
+
+***
+# Dataset #2 - Personal Income
+***
+
+
+### Questions to Answer
+
+> Avi also found a great dataset on the U.S. Census website that looks at personal income data relative to education. This dataset also requires a lot of tidying/wrangling before analysis can be completed. Once that is taken care of, I'll do my best to answer his primary question below:  
+
+  + Do a comparison between income and education, investigating if there is a trend or correlation between them.
+  
+***
+
+### Reading the data from csv into R
+
+```{r cars}
+pincome_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Project2/personal_income.csv')
+```
+
+***
+
+```{r}
+pincome_data_sliced <- pincome_data %>% 
+  slice(14:57) %>% 
+  rename("characteristic" = `ï..Table.with.row.headers.in.column.A.and.column.headers.in.rows.12.through.14`,
+         "total" = X,
+         "less_than_9th" = X.1,
+         "9th_to_12th_nongrad" = X.2,
+         "graduate_incl_ged" = X.3,
+         "some_col_no_degree" = X.4,
+         "assoc_degree" = X.5,
+         "bachelors" = X.7,
+         "masters" = X.8,
+         "professional" = X.9,
+         "doctorate" = X.10,
+         "bach_or_more" = X.6)
+
+pincome_data_sliced$characteristic <- unlist(str_replace_all(pincome_data_sliced$characteristic, '\\..', ""))
+```
+
+**Change data types to numbers**
