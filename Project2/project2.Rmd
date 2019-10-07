@@ -18,6 +18,7 @@ library(stringr)
 library(anytime)
 library(plotly)
 library(gapminder)
+library(ggcorrplot)
 ```
 
 
@@ -29,7 +30,7 @@ library(gapminder)
 
 ### Questions to Answer
 
-> Diane found a great kickstarter data source that had some data to be cleaned/tidied in order to answer a few questions. Below are a few questions I answered after tidying the dataset:
+> Diane DeOcampo found a great kickstarter data source that had some data to be cleaned/tidied in order to answer a few questions. Below are a few questions I answered after tidying the dataset:
 
   + How do staff-picked projects influence the success of a project?
   + Which projects tend to be more successful (looking at category)?
@@ -81,8 +82,7 @@ kickstarter_cleaned <- kickstarter_data %>%
          staff_pick) %>% 
   mutate(campaign_length = state_changed_at - created_at)
 
-kable(head(kickstarter_cleaned), align = rep('c', 12))%>% 
-  kable_styling(bootstrap_options = c("striped"))
+head(kickstarter_cleaned, 10)
 ```
 
 ***
@@ -118,13 +118,13 @@ plot
 
 ```
 
-> Answer: From the plot above, as well as the table, we can see that Kickstarter campaigns that were staff-picked had a much higher percent success rate than those that were not picked by staff.
+> Conclusion: From the plot above, as well as the table, we can see that Kickstarter campaigns that were staff-picked had a much higher percent success rate than those that were not picked by staff.
 
 ***
 
   > Question #2: Which projects tend to be more successful (looking at category)?
   
-  To work through this question, I had to tidy the data in a way to calculate the success rate based on categories that I pulled from the original file. After summarizing the data similar to above, I then was able to group the data based on the categories and filter by successful campaigns and find the success rate out of the total campaigns per category. I then was interested in finding the categories that had high success rates, but also had a large number of campaigns in that category to support the high success rate. It's hard to judge whether or not a certain category has wide appeal if there are only a few campaigns to analyze. Therefore, I weighted those that had a success rate above 75%, as well as more than 30 campaigns in a category, as a safer judgement to being more appealing to potential donors. You can find this data plotted below. If you click the legend, you can add/remove data points and use more of plotly's features to examine the plot. There is also a tooltip if you hover over each point, which gives you the category information.
+  To work through this question, I had to tidy the data in a way to calculate the success rate based on categories that I pulled from the original file. After summarizing the data similar to above, I then was able to group the data based on the categories and filter by successful campaigns and find the success rate out of the total campaigns per category. I then was interested in finding the categories that had high success rates, but also had a large number of campaigns in that category to support the high success rate (a bit of a decision tree analysis). It's hard to judge whether or not a certain category has good success if there are only a few campaigns to analyze. Therefore, I wanted to isolate those that had a success rate above 75%, as well as more than 30 campaigns in a category, as a safer judgement to being more appealing to potential donors. You can find this data plotted below. If you click the legend, you can add/remove data points and use more of plotly's features to examine the plot. There is also a tooltip if you hover over each point, which gives you the category information.
   
 ```{r}
 category_success <- kickstarter_cleaned %>% 
@@ -166,7 +166,7 @@ kable(top_categories, align = rep('c', 5)) %>%
 
 ***
 
-> Answer: As you can see, campaigns that fall under the categories of 'Shorts', 'Comic', 'Country' and 'Documentary' tend to have higher success rates. Additionally, those with engaging videos, powerful illustrations, or were catchy, seemed to have more appeal with potential donors. No statistical tests have been done to prove these claims though, so it would be interesting to dive deeper into these analysis to see if there are true differences between categories.
+> Conclusion: As you can see, campaigns that fall under the categories of 'Shorts', 'Comic', 'Country' and 'Documentary' tend to have higher success rates. My theory is that those with engaging videos, powerful illustrations, or were patriotic (i.e. "Country"), seemed to have more appeal with potential donors. No statistical tests have been done to prove these claims though, so it would be interesting to dive deeper into these analysis to see if there are true differences between categories.
 
 ***
 
@@ -200,7 +200,7 @@ plot
 
 ```
 
-> Answer: We can see, based on the state of the campaign that there is a wide discrepancy in the mean number of backers as well as the mean length of a campaign (in days). Successful campaigns seem to accumulate many more total backers, compared to all other states, and the mean total backers for both failed and canceled campaigns is much lower than their mean campaign length.
+> Conclusion: We can see, based on the state of the campaign that there is a wide discrepancy in the mean number of backers as well as the mean length of a campaign (in days). Successful campaigns seem to accumulate many more total backers, compared to all other states/statuses, and the mean total backers for both failed and canceled campaigns is much lower than their mean campaign length.
 
 
 ***
@@ -210,25 +210,26 @@ plot
 
 ### Questions to Answer
 
-> Avi also found a great dataset on the U.S. Census website that looks at personal income data relative to education. This dataset also requires a lot of tidying/wrangling before analysis can be completed. Once that is taken care of, I'll do my best to answer his primary question below:  
+> Avi Adler found a great dataset on the U.S. Census website that looks at personal income data relative to education. This dataset also requires a lot of tidying/wrangling before analysis can be completed. Once that is taken care of, I'll do my best to answer his primary question below:  
 
-  + Do a comparison between income and education, investigating if there is a trend or correlation between them.
+> Question #1: Do a comparison between income and education, investigating if there is a trend or correlation between them.
   
 ***
 
 ### Reading the data from csv into R
 
-```{r cars}
+```{r}
 pincome_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Project2/personal_income.csv')
 ```
 
 ***
 
+### Cleaning the dataset, removing unwanted columns and rows
+
 ```{r}
-pincome_data_sliced <- pincome_data %>% 
-  slice(14:57) %>% 
-  rename("characteristic" = `ï..Table.with.row.headers.in.column.A.and.column.headers.in.rows.12.through.14`,
-         "total" = X,
+pincome_data_cleaned <- pincome_data %>% 
+  slice(17:57) %>% 
+  rename("total" = X,
          "less_than_9th" = X.1,
          "9th_to_12th_nongrad" = X.2,
          "graduate_incl_ged" = X.3,
@@ -240,7 +241,252 @@ pincome_data_sliced <- pincome_data %>%
          "doctorate" = X.10,
          "bach_or_more" = X.6)
 
-pincome_data_sliced$characteristic <- unlist(str_replace_all(pincome_data_sliced$characteristic, '\\..', ""))
+colnames(pincome_data_cleaned)[1] <- "characteristic"
+
+pincome_data_cleaned$characteristic <- unlist(str_replace_all(pincome_data_cleaned$characteristic, '\\..', ""))
+sapply(pincome_data_cleaned, typeof)
 ```
 
-**Change data types to numbers**
+
+***
+
+### Removing the commas and changing data types to numeric
+
+```{r}
+converttoNum_removeComma <- function(value){
+  tmp <- as.numeric(str_replace_all(value, "\\,", ""))
+  tmp2 <- tmp * 1000
+  return(tmp2)
+}
+
+pincome_nums <- sapply(pincome_data_cleaned[2:12], converttoNum_removeComma)
+pincome_nums <- data.frame(pincome_nums)
+```
+
+***
+
+### Selecting columns, making new columns, and saving to a cleaner data frame
+
+I wanted to add in a few extra columns to help with data analysis later on. One column that I added in particular, groups the 41 different income levels into 5 different income levels.
+
+***
+
+```{r}
+pincome_final <- pincome_nums
+pincome_final$income_group <- pincome_data_cleaned$characteristic
+
+pincome_final <- pincome_final %>% 
+  mutate(income_group_num = row_number())
+
+pincome_final <- pincome_final %>%
+  mutate(income_subset = ifelse(income_group_num < 11, 1,
+       ifelse(income_group_num < 21 & income_group_num >= 11, 2,
+       ifelse(income_group_num < 31 & income_group_num >= 21, 3,
+       ifelse(income_group_num < 41 & income_group_num >= 31, 4,
+       ifelse(income_group_num == 41, 5, NA)))))) %>% 
+  mutate(highschool_nongrad = less_than_9th + X9th_to_12th_nongrad,
+         highschool_grad = graduate_incl_ged + some_col_no_degree,
+         bachelors_or_more = bachelors + masters + professional + doctorate) %>% 
+  select(income_group,
+         income_subset,
+         highschool_nongrad,
+         highschool_grad,
+         bachelors_or_more,
+         less_than_9th,
+         X9th_to_12th_nongrad,
+         graduate_incl_ged,
+         some_col_no_degree,
+         assoc_degree,
+         bachelors,
+         masters,
+         professional,
+         doctorate) %>%
+  rename("9th_to_12th_nongrad" = X9th_to_12th_nongrad)
+
+head(pincome_final)
+```
+
+***
+
+### Wrangling data from wide to tall
+
+To make use of this data, I wanted to group the counts of individuals based on more concrete income groups. Therefore, I tidied the data using group_by, gather, spread, and mutate functions in order to do the following:  
+
+ + Added a value column based on the income level rank (1 = lowest income group, 41 = highest income group)
+ + Selected the appropriate columns, and then gathered the data to condense the values into a tall structured data frame  
+ + Then, I found the percent for each income level rank out of the total for each education group (i.e. associates degree, doctorate, etc.)
+ + Next, I grouped the income levels into smaller subsets (5 different subsets), in order to simplify the income brackets a bit - this was copied from above
+ + Then, by summarizing the data, I summed the percents and gathered the data to show the sum of the percents by education level and modified income level (5 levels of income at this point)
+ + After this, I fixed up the labels in the modified table, and prepared it for my bar plot below.
+
+```{r}
+calc <- pincome_final %>% 
+  mutate(income_group_num = row_number()) %>% 
+  select(income_group_num, 6:14) %>% 
+  group_by(income_group_num) %>% 
+  gather(education, n, 2:10) %>%
+  arrange(education) %>% 
+  group_by(education) %>% 
+  mutate(prct = n / sum(n)) %>% 
+  select(income_group_num, education, prct) %>% 
+  mutate(income_subset = ifelse(income_group_num < 11, 1,
+       ifelse(income_group_num < 21 & income_group_num >= 11, 2,
+       ifelse(income_group_num < 31 & income_group_num >= 21, 3,
+       ifelse(income_group_num < 41 & income_group_num >= 31, 4,
+       ifelse(income_group_num == 41, 5, NA)))))) %>% 
+  select(income_subset, education, prct) %>% 
+  group_by(income_subset, education) %>% 
+  summarise(sum = sum(prct)) %>% 
+  spread(income_subset, sum) %>% 
+  gather('income', 'percent', 2:6) %>% 
+  mutate(income = ifelse(income == 1, 'A - Less than 25K',
+         ifelse(income == 2, 'B - Between 25K and 49K',
+         ifelse(income == 3, 'C - Between 50K and 74K',
+         ifelse(income ==4, 'D - Between 75K and 99K',
+         ifelse(income == 5, 'E - 100K or more', NA))))))
+
+calc <- calc %>% 
+  mutate(education = ifelse(education == 'less_than_9th', 'A - Less than 9th Grade',
+        ifelse(education == '9th_to_12th_nongrad', 'B - Some HS, No Diploma',
+        ifelse(education == 'graduate_incl_ged', 'C - HS Grad (or GED)',
+        ifelse(education == 'some_col_no_degree', 'D - Some Col, No Degree',
+        ifelse(education == 'assoc_degree', 'E - Associates Degree',
+        ifelse(education == 'bachelors', 'F - Bachelors Degree',
+        ifelse(education == 'masters', 'G - Masters Degree',
+        ifelse(education == 'professional', 'H - Professional Degree',
+        ifelse(education == 'doctorate', 'I - Doctoral Degree', NA)))))))))) %>% 
+  arrange(education, income)
+
+
+kable(calc, align = rep('c', 3)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
+```
+
+Above is my much tidyer table that summarizes some important data! We can now see the percent of individuals that make up each income group broken out by education level. In order to work more with tidyr and dplyr, I decided to present this data in a transposed table. See below for my syntax on creating a transposed table of this information (back to wide version):
+
+```{r}
+calc_wide <- calc %>% 
+  spread(income, percent) %>% 
+  rename("Education Level" = education,
+         "Less than $25K" = `A - Less than 25K`,
+         "Between $25K and $49K" = `B - Between 25K and 49K`,
+         "Between $50K and $74K" = `C - Between 50K and 74K`,
+         "Between $75K and $99K" = `D - Between 75K and 99K`,
+         "$100K or more" = `E - 100K or more`) %>% 
+  mutate(`Less than $25K` = paste0(format((`Less than $25K` * 100), digits = 2), '%'),
+         `Between $25K and $49K` = paste0(format((`Between $25K and $49K` * 100), digits = 2), '%'),
+         `Between $50K and $74K` = paste0(format((`Between $50K and $74K` * 100), digits = 2), '%'),
+         `Between $75K and $99K` = paste0(format((`Between $75K and $99K` * 100), digits = 2), '%'),
+         `$100K or more` = paste0(format((`$100K or more` * 100), digits = 2), '%')) %>% 
+  mutate(`Education Level` = str_replace_all(`Education Level`, '\\w+\\s+\\-\\s+', ''))
+
+kable(calc_wide, align = rep('c', 3)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
+```
+
+Although both of these tables, more particularly the second one, is a good way to summarize the data, I thought it would be helpful to visualize this by education level in a bar plot. 
+
+***
+
+### Looking at trends between income and education
+
+```{r}
+plot <- ggplot(calc, aes(x = income, y = percent, fill= income))
+plot <- plot + scale_y_continuous()
+plot <- plot + theme(legend.position = "right", axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title = element_blank())
+plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack", color="#dddddd")
+plot <- plot + facet_wrap(education ~ .)
+plot
+
+```
+
+> Conclusion: From looking at the bar chart above, we can see that there is a trend between level of education and income. It appears that those with higher degrees, including either a Master's degree, Professional degree, or Doctorate, seem to show a higher proportion of individuals have personal incomes greater than $50,000. Interestingly, it also looks like those with a professional degree have a higher proportion that make over 100,000 dollars relative to those that have a doctorate.  
+
+
+***
+# Dataset #3 - Pokemon Dataset
+***
+
+> Bryan Persaud found a dataset that brought back some nostalgia for the days that I played Pokemon! I decided to utilize this example for my final tidying task.
+
+> Question #1: Do a comparison between the strongest and weakest pokemon between two different types (i.e. Grass, Fire, Water, etc.)
+  
+***
+
+### Reading the data from csv into R
+
+```{r}
+pokemon_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Project2/pokemon.csv')
+```
+
+***
+
+### Tidying the data and selecting relevant columns
+
+First, since I'm only familiar with the 1st Generation of Pokemon, I decided to use that dataset for this analysis. After pulling this in from GitHub, I noticed there were a few duplicate listings of Pokemon -- mainly those that were split into "Mega" versions of themselves. Because I'd like to look at this solely from the perspective of the original 150 Pokemon, I decided to remove these duplicate listings. Below, I filtered these out using another regular expression:
+
+```{r}
+head(pokemon_data, 10)
+
+pokemon_data <- pokemon_data %>% 
+  filter(!str_detect(Name, '\\Mega'))
+
+head(pokemon_data, 10)
+```
+
+We can see from the two dataframes that the "Mega" versions of pokemon have been removed.
+
+***
+Then, I thought it would be beneficial to select relevant columns for this comparison, and group them based on their main type and total HP. The question then would like us to identify the Pokemon with the highest and lowest HP in each type. Do do this, I used group by and mutate a few times in order calculate the maximum and minimum HP per pokemon type:  
+```{r}
+best_worst_of_type <- pokemon_data %>% 
+  select(Name, Type1, Total) %>% 
+  arrange(Type1, Total) %>% 
+  group_by(Type1) %>% 
+  mutate(Highest_HP = max(Total), 
+         Lowest_HP = min(Total)) %>% 
+  ungroup() %>% 
+  mutate(Reason = (Total == Highest_HP) | (Total == Lowest_HP)) %>% 
+  filter(Reason == TRUE) %>% 
+  mutate(Reason = ifelse(Total == Highest_HP, 'Highest HP', 'Lowest HP')) %>%
+  select(Name, Type1, Reason, Total) %>%
+  rename("Pokemon" = Name,
+         "Type" = Type1,
+         "Total HP" = Total)
+
+t1 <- best_worst_of_type %>% 
+  filter(Reason == 'Lowest HP')
+
+t2 <- best_worst_of_type %>% 
+  filter(Reason == 'Highest HP')
+```
+
+***
+
+### Printing the tables
+
+```{r}
+kable(t1, align = 'clc', caption = 'Pokemon w/ Lowest HP in Group') %>%
+    kable_styling(bootstrap_options = c('striped'), full_width = F)
+kable(t2, align = 'clc', caption = 'Pokemon w/ Highest HP in Group') %>%
+    kable_styling(bootstrap_options = c('striped'), full_width = F)
+```
+
+***
+
+As we can see from above, all of these first-generation Pokemon that have the highest HP for their group are evolved forms of less-evolved Pokemon. Conversely, the Pokemon with the lowest HP for their group are mostly primitive forms of Pokemon (some of the first you'll encounter in the wild - I bumped into too many Pidgeys when I played the game!!). This makes sense, given that in the game the goal as a trainer is to increase your Pokemon's hit points (HP) and evolve your pokemon in order to be resilient against other Pokemon in battles. Now, we can do a comparison between the Water-type pokemon and Psychic-type pokemon to complete the question.
+
+```{r}
+pokemon_filter_for_analysis <- best_worst_of_type %>% 
+  filter(Type == 'Water' | Type == 'Psychic') %>% 
+  arrange(`Total HP`)
+
+plot <- ggplot(pokemon_filter_for_analysis, aes(x = Pokemon, y = `Total HP`, fill= Reason))
+plot <- plot + scale_y_continuous()
+plot <- plot + theme(legend.position = "right", axis.title = element_blank())
+plot <- plot + geom_bar(stat = "identity", width = 0.95, position = "stack", color="#dddddd")
+plot <- plot + facet_wrap(Type ~ ., scales = "free_x")
+plot
+```
+
+> Conclusion: As we can see here when comparing the Pokemon with the highest and lowest hit points from the Psychic and Water types, we find that Abra doesn't have as low of an HP as Magikarp, which is the pokemon with the lowest HP for a Water-type. Additionally, Mewtwo has a higher HP than Gyarados, who has the highest HP of all Water-type pokemon. Therefore, when comparing the pokemon with the highest and lowest HPs between the water-types and psychic-types, we can see that psychic types have a higher HP for both its lowest- and highest-rated pokemon relative to water-type pokemon.
