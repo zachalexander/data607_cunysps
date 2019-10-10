@@ -8,25 +8,20 @@ output: html_document
 ```{r setup, include=FALSE}
 library(RCurl)
 library(XML)
+library(stringr)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+### XML Extraction
 
 ```{r}
 books_xml_raw <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.xml')
-books_xml <- xmlTreeParse("<Your URL to the XML data>")
+
+book_titles <- str_extract_all(books_xml_raw, '<title>.+>')
+book_dt_pub <- str_extract_all(books_xml_raw, '<date_published>.+>')
+book_famous_quote <- str_extract_all(books_xml_raw, '<famous_quote_from_book>.+>')
+book_amazon <- str_extract_all(books_xml_raw, '<amazon_review_stars>.+>')
+book_author_fn <- str_extract_all(books_xml_raw, '<first_name>.+>')
+book_author_ln <- str_extract_all(books_xml_raw, '<last_name>.+>')
+book_author_bp <- str_extract_all(books_xml_raw, '<birthplace>.+>')
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
