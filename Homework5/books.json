@@ -1,0 +1,62 @@
+{
+    "myFavoriteBooks": [
+        {
+        "subject": "science",
+        "books": [
+            {
+                "title": "The Origin of Species",
+                "date_published": 1859,
+                "famous_quote": "We will now discuss in a little more detail the Struggle for Existence.",
+                "amazon_review_stars": "4 out of 5",
+                "book_id": 1
+            },
+            {
+                "title": "Sapiens: A Brief History of Humankind",
+                "date_published": 2011,
+                "famous_quote": "Each year the US population spends more money on diets than the amount needed to feed all the hungry people in the rest of the world.",
+                "amazon_review_stars": "4.5 out of 5",
+                "book_id": 2
+            },
+            {
+                "title": "The Feynman Lectures on Physics",
+                "date_published": 1963,
+                "famous_quote": "...every object is a mixture of lots of things, so we can deal with it only as a series of approximations and idealizations.",
+                "amazon_review_stars": "4.5 out of 5",
+                "book_id": 3
+            }
+        ],
+        "authors": [
+            {
+                "first_name": "Charles",
+                "last_name": "Darwin",
+                "birthplace": "Shrewsbury, United Kingdom",
+                "book_id": 1
+            },
+            {
+                "first_name": "Yuval",
+                "last_name": "Noah Harari",
+                "birthplace": "Kiryat Ata, Israel",
+                "book_id": 2
+            },
+            {
+                "first_name": "Richard",
+                "last_name": "Feynman",
+                "birthplace": "Queens, New York City",
+                "book_id": 3
+            },
+            {
+                "first_name": "Robert",
+                "last_name": "Leighton",
+                "birthplace": "Detroit, Michigan",
+                "book_id": 3
+            },
+            {
+                "first_name": "Matthew",
+                "last_name": "Sands",
+                "birthplace": "Oxford, Massachusetts",
+                "book_id": 3
+            }
+        ]
+        }
+    ] 
+}

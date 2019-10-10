@@ -1,0 +1,45 @@
+<favorite_books subject="Science">
+    <book>
+        <title>The Origin of Species</title>
+        <date_published>1859</date_published>
+        <famous_quote_from_book>“We will now discuss in a little more detail the Struggle for Existence.”</famous_quote_from_book>
+        <amazon_review_stars>4 out of 5</amazon_review_stars>
+    </book>
+    <author>
+        <first_name>Charles</first_name>
+        <last_name>Darwin</last_name>
+        <birthplace>Shrewsbury, United Kingdom</birthplace>
+    </author>
+    <book>
+        <title>Sapiens: A Brief History of Humankind</title>
+        <date_published>2011</date_published>
+        <famous_quote_from_book>“Each year the US population spends more money on diets than the amount needed to feed all the hungry people in the rest of the world.”</famous_quote_from_book>
+        <amazon_review_stars>4.5 out of 5</amazon_review_stars>
+    </book>
+    <author>
+        <first_name>Yuval</first_name>
+        <last_name>Noah Harari</last_name>
+        <birthplace>Kiryat Ata, Israel</birthplace>
+    </author>
+    <book>
+        <title>The Feynman Lectures on Physics</title>
+        <date_published>1963</date_published>
+        <famous_quote_from_book>“...every object is a mixture of lots of things, so we can deal with it only as a series of approximations and idealizations.”</famous_quote_from_book>
+        <amazon_review_stars>4.5 out of 5</amazon_review_stars>
+    </book>
+    <author>
+        <first_name>Richard</first_name>
+        <last_name>Feynman</last_name>
+        <birthplace>Queens, New York City</birthplace>
+    </author>
+    <author>
+        <first_name>Robert</first_name>
+        <last_name>Leighton</last_name>
+        <birthplace>Detroit, Michigan</birthplace>
+    </author>
+    <author>
+        <first_name>Matthew</first_name>
+        <last_name>Sands</last_name>
+        <birthplace>Oxford, Massachusetts</birthplace>
+    </author>
+</favorite_books>
