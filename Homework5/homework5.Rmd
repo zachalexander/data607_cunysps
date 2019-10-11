@@ -9,6 +9,10 @@ output: html_document
 library(RCurl)
 library(XML)
 library(stringr)
+library(htmlTable)
+library(magrittr)
+library(rvest)
+library(dplyr)
 ```
 
 ### XML Extraction
@@ -16,12 +20,77 @@ library(stringr)
 ```{r}
 books_xml_raw <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.xml')
 
-book_titles <- str_extract_all(books_xml_raw, '<title>.+>')
-book_dt_pub <- str_extract_all(books_xml_raw, '<date_published>.+>')
-book_famous_quote <- str_extract_all(books_xml_raw, '<famous_quote_from_book>.+>')
-book_amazon <- str_extract_all(books_xml_raw, '<amazon_review_stars>.+>')
-book_author_fn <- str_extract_all(books_xml_raw, '<first_name>.+>')
-book_author_ln <- str_extract_all(books_xml_raw, '<last_name>.+>')
-book_author_bp <- str_extract_all(books_xml_raw, '<birthplace>.+>')
+books_xml_df <- data.frame(matrix(NA, nrow = 6, ncol = 7))
+
+books_xml_df <- books_xml_df %>% 
+  rename("title" = X1,
+         "date_pub" = X2,
+         "famous_quote" = X3,
+         "amazon_rating" = X4,
+         "author_first_name" = X5,
+         "author_last_name" = X6,
+         "author_birthplace" = X7)
+
+book_titles <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<title>.+>')), '<\\/?\\w+\\>', '')
+book_dt_pub <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<date_published>.+>')), '<\\/?\\w+\\>', '')
+book_famous_quote <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<famous_quote_from_book>.+>')), '<\\/?\\w+\\>', '')
+book_amazon <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<amazon_review_stars>.+>')), '<\\/?\\w+\\>', '')
+book_author_fn <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<first_name>.+>')), '<\\/?\\w+\\>', '')
+book_author_ln <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<last_name>.+>')), '<\\/?\\w+\\>', '')
+book_author_bp <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<birthplace>.+>')), '<\\/?\\w+\\>', '')
+book_num <- c('Book 1', 'Book 2', 'Book 3')
+
+for(i in 4:5){
+  book_amazon[i] <- book_amazon[3]
+  book_titles[i] <- book_titles[3]
+  book_dt_pub[i] <- book_dt_pub[3]
+  book_famous_quote[i] <- book_famous_quote[3]
+  book_num[i] <- book_num[3]
+}
+
+books_xml_df <- data.frame("Book Number" = book_num,
+                           "Title" = book_titles,
+                           "Date Published" = book_dt_pub,
+                           "Famous Quote" = book_famous_quote,
+                           "Amazon Rating" = book_amazon,
+                           "Author First Name" = book_author_fn,
+                           "Author Last Name" = book_author_ln,
+                           "Author Birthplace" = book_author_bp)
+
+books_xml_df
 ```
+
+### HTML Extraction
+
+```{r}
+books_html_raw <- read_html('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.html')
+```
+
+```{r}
+book_num_html <- books_html_raw %>% 
+  html_nodes(xpath = '//*[@class="book_num"]') %>% html_text()
+
+book_html_text <- books_html_raw %>% 
+  html_nodes("td") %>% html_text()
+
+book_html_text <- unlist(book_html_text[!duplicated(book_html_text)])
+
+book_html_column_headers <- book_html_text[1:7]
+
+book_html_text <- book_html_text[8:length(book_html_text)]
+
+book_dt_pub_html <- unlist(str_extract_all(book_html_text, '\\d{4}'))
+book_author_bp_html <- unlist(str_extract_all(book_html_text, '\\w.+,\\s\\w.+'))
+book_author_bp_html <- book_author_bp_html[-c(3)]
+
+# work through this
+book_author_name <- unlist(str_extract_all(book_html_text, '\\w+$'))
+
+
+```
+
+
+
+
+
 
