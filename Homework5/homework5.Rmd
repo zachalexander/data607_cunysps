@@ -13,15 +13,22 @@ library(htmlTable)
 library(magrittr)
 library(rvest)
 library(dplyr)
+library(knitr)
+library(kableExtra)
 ```
 
 ### XML Extraction
 
 ```{r}
+# read in the raw xml file from my GitHub account
 books_xml_raw <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.xml')
 
-books_xml_df <- data.frame(matrix(NA, nrow = 6, ncol = 7))
 
+# creating an empty data frame with 5 rows and 7 columns
+books_xml_df <- data.frame(matrix(NA, nrow = 5, ncol = 7))
+
+
+# renaming column headers
 books_xml_df <- books_xml_df %>% 
   rename("title" = X1,
          "date_pub" = X2,
@@ -31,6 +38,7 @@ books_xml_df <- books_xml_df %>%
          "author_last_name" = X6,
          "author_birthplace" = X7)
 
+# using regex to find the data needed
 book_titles <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<title>.+>')), '<\\/?\\w+\\>', '')
 book_dt_pub <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<date_published>.+>')), '<\\/?\\w+\\>', '')
 book_famous_quote <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<famous_quote_from_book>.+>')), '<\\/?\\w+\\>', '')
@@ -38,8 +46,13 @@ book_amazon <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<amazon_re
 book_author_fn <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<first_name>.+>')), '<\\/?\\w+\\>', '')
 book_author_ln <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<last_name>.+>')), '<\\/?\\w+\\>', '')
 book_author_bp <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<birthplace>.+>')), '<\\/?\\w+\\>', '')
+
+# creating a column to identify which book categorized in dataframe
 book_num <- c('Book 1', 'Book 2', 'Book 3')
 
+
+# created a for loop to duplicate the data for the corresponding vectors in order to
+# develop separate dataframe of matching rows
 for(i in 4:5){
   book_amazon[i] <- book_amazon[3]
   book_titles[i] <- book_titles[3]
@@ -47,6 +60,8 @@ for(i in 4:5){
   book_famous_quote[i] <- book_famous_quote[3]
   book_num[i] <- book_num[3]
 }
+
+# changed the column names one more time to make it more presentable
 
 books_xml_df <- data.frame("Book Number" = book_num,
                            "Title" = book_titles,
@@ -57,34 +72,54 @@ books_xml_df <- data.frame("Book Number" = book_num,
                            "Author Last Name" = book_author_ln,
                            "Author Birthplace" = book_author_bp)
 
-books_xml_df
+kable(books_xml_df)
 ```
 
 ### HTML Extraction
 
 ```{r}
+# read in the raw html table from my GitHub account
 books_html_raw <- read_html('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.html')
 ```
 
 ```{r}
+
+# using html nodes to extract the book_num column
 book_num_html <- books_html_raw %>% 
   html_nodes(xpath = '//*[@class="book_num"]') %>% html_text()
 
+# using html nodes again to extract all other table information
 book_html_text <- books_html_raw %>% 
   html_nodes("td") %>% html_text()
 
+# removing duplicate information from the vector
 book_html_text <- unlist(book_html_text[!duplicated(book_html_text)])
 
+# extracting the column header names that will be used later
 book_html_column_headers <- book_html_text[1:7]
 
+# subsequently removing the first 7 values in vector since they are now
+# in the column_headers vector
 book_html_text <- book_html_text[8:length(book_html_text)]
 
+# had to get rid of the \n character for later regex work, also removed 
+# extra spaces in vector
+book_html_text <- str_replace_all(book_html_text, '\n', '')
+book_html_text <- str_replace_all(book_html_text, '\\s{2,6}', ' ')
+
+# since all years are of length four, was able to extract using regex
 book_dt_pub_html <- unlist(str_extract_all(book_html_text, '\\d{4}'))
+
+# since all birthplaces had a comma separating locations, I used regex again
 book_author_bp_html <- unlist(str_extract_all(book_html_text, '\\w.+,\\s\\w.+'))
 book_author_bp_html <- book_author_bp_html[-c(3)]
 
+# since all quotes had smart quotes, could use regex to extract these into vector
+book_famous_quote_html <- str_replace_all(unlist(str_extract_all(book_html_text, '“.+?\\w+.+')), '[“”]', '')
+
 # work through this
 book_author_name <- unlist(str_extract_all(book_html_text, '\\w+$'))
+
 
 
 ```
