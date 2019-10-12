@@ -92,6 +92,14 @@ book_num_html <- books_html_raw %>%
 book_html_text <- books_html_raw %>% 
   html_nodes("td") %>% html_text()
 
+# using html nodes to extract all values with class name of auth_first_name
+book_html_author_fn <- books_html_raw %>% 
+  html_nodes(xpath = '//*[@class="auth_first_name"]') %>% html_text()
+
+# using html nodes to extract all values with class name of auth_last_name
+book_html_author_ln <- books_html_raw %>% 
+  html_nodes(xpath = '//*[@class="auth_last_name"]') %>% html_text()
+
 # removing duplicate information from the vector
 book_html_text <- unlist(book_html_text[!duplicated(book_html_text)])
 
@@ -111,14 +119,12 @@ book_html_text <- str_replace_all(book_html_text, '\\s{2,6}', ' ')
 book_dt_pub_html <- unlist(str_extract_all(book_html_text, '\\d{4}'))
 
 # since all birthplaces had a comma separating locations, I used regex again
+# I could've used html_nodes, but wanted to practice regex more
 book_author_bp_html <- unlist(str_extract_all(book_html_text, '\\w.+,\\s\\w.+'))
 book_author_bp_html <- book_author_bp_html[-c(3)]
 
 # since all quotes had smart quotes, could use regex to extract these into vector
 book_famous_quote_html <- str_replace_all(unlist(str_extract_all(book_html_text, '“.+?\\w+.+')), '[“”]', '')
-
-# work through this
-book_author_name <- unlist(str_extract_all(book_html_text, '\\w+$'))
 
 
 
