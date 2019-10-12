@@ -28,6 +28,10 @@ library(jsonlite)
 
 ***
 
+![Snapshot of part of the raw XML file that I created.](https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/xml_snapshot.png)
+
+***
+
 #### First, I read in the raw xml file from my GitHub account
 ```{r}
 books_xml_raw <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.xml')
@@ -104,6 +108,10 @@ kable(books_xml_df, align = rep('c', 8)) %>%
 ***
 
 ## HTML Extraction
+
+***
+
+![Snapshot of part of the raw HTML file that I created.](https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/html_snapshot.png)
 
 ***
 
@@ -207,6 +215,10 @@ kable(books_html_df, align = rep('c', 8)) %>%
 
 ***
 
+![Snapshot of part of the raw JSON file that I created.](https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/json_snapshot.png)
+
+***
+
 #### I used the jsonlite package to read in the json data
 ```{r}
 books_json_raw <- fromJSON('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.json')
@@ -259,4 +271,8 @@ kable(books_json_df, align = rep('c', 8)) %>%
   kable_styling(bootstrap_options = c("striped"))
 ```
 
+***
+
 #### The way that I worked through the data extraction for the three data frames, I did come out with identical data frames. However, I could definitely see many other techniques that would make the data frames different from one another.
+
+***
