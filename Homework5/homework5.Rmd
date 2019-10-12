@@ -97,6 +97,14 @@ book_html_author_fn <- books_html_raw %>%
 book_html_author_ln <- books_html_raw %>% 
   html_nodes(xpath = '//*[@class="auth_last_name"]') %>% html_text()
 
+# using html nodes to extract all values with class name of auth_last_name
+book_html_title <- books_html_raw %>% 
+  html_nodes(xpath = '//*[@class="book_title"]') %>% html_text()
+
+# using html nodes to extract all values with class name of auth_last_name
+book_html_amazon <- books_html_raw %>% 
+  html_nodes(xpath = '//*[@class="book_rating"]') %>% html_text()
+
 # removing duplicate information from the vector
 book_html_text <- unlist(book_html_text[!duplicated(book_html_text)])
 
