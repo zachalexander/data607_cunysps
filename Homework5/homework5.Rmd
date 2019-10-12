@@ -39,40 +39,38 @@ books_xml_df <- books_xml_df %>%
          "author_birthplace" = X7)
 
 # using regex to find the data needed
-book_titles <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<title>.+>')), '<\\/?\\w+\\>', '')
-book_dt_pub <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<date_published>.+>')), '<\\/?\\w+\\>', '')
-book_famous_quote <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<famous_quote_from_book>.+>')), '<\\/?\\w+\\>', '')
-book_amazon <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<amazon_review_stars>.+>')), '<\\/?\\w+\\>', '')
-book_author_fn <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<first_name>.+>')), '<\\/?\\w+\\>', '')
-book_author_ln <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<last_name>.+>')), '<\\/?\\w+\\>', '')
-book_author_bp <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<birthplace>.+>')), '<\\/?\\w+\\>', '')
+book_xml_titles <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<title>.+>')), '<\\/?\\w+\\>', '')
+book_xml_dt_pub <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<date_published>.+>')), '<\\/?\\w+\\>', '')
+book_xml_famous_quote <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<famous_quote_from_book>.+>')), '<\\/?\\w+\\>', '')
+book_xml_amazon <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<amazon_review_stars>.+>')), '<\\/?\\w+\\>', '')
+book_xml_author_fn <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<first_name>.+>')), '<\\/?\\w+\\>', '')
+book_xml_author_ln <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<last_name>.+>')), '<\\/?\\w+\\>', '')
+book_xml_author_bp <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<birthplace>.+>')), '<\\/?\\w+\\>', '')
 
 # creating a column to identify which book categorized in dataframe
-book_num <- c('Book 1', 'Book 2', 'Book 3')
+book_xml_num <- c('Book 1', 'Book 2', 'Book 3')
 
 
 # created a for loop to duplicate the data for the corresponding vectors in order to
 # develop separate dataframe of matching rows
 for(i in 4:5){
-  book_amazon[i] <- book_amazon[3]
-  book_titles[i] <- book_titles[3]
-  book_dt_pub[i] <- book_dt_pub[3]
-  book_famous_quote[i] <- book_famous_quote[3]
-  book_num[i] <- book_num[3]
+  book_xml_amazon[i] <- book_xml_amazon[3]
+  book_xml_titles[i] <- book_xml_titles[3]
+  book_xml_dt_pub[i] <- book_xml_dt_pub[3]
+  book_xml_famous_quote[i] <- book_xml_famous_quote[3]
+  book_xml_num[i] <- book_xml_num[3]
 }
 
 # changed the column names one more time to make it more presentable
 
-books_xml_df <- data.frame("Book Number" = book_num,
-                           "Title" = book_titles,
-                           "Date Published" = book_dt_pub,
-                           "Famous Quote" = book_famous_quote,
-                           "Amazon Rating" = book_amazon,
-                           "Author First Name" = book_author_fn,
-                           "Author Last Name" = book_author_ln,
-                           "Author Birthplace" = book_author_bp)
-
-kable(books_xml_df)
+books_xml_df <- data.frame("Book Number" = book_xml_num,
+                           "Title" = book_xml_titles,
+                           "Date Published" = book_xml_dt_pub,
+                           "Famous Quote" = book_xml_famous_quote,
+                           "Amazon Rating" = book_xml_amazon,
+                           "Author First Name" = book_xml_author_fn,
+                           "Author Last Name" = book_xml_author_ln,
+                           "Author Birthplace" = book_xml_author_bp)
 ```
 
 ### HTML Extraction
@@ -83,9 +81,8 @@ books_html_raw <- read_html('https://raw.githubusercontent.com/zachalexander/dat
 ```
 
 ```{r}
-
 # using html nodes to extract the book_num column
-book_num_html <- books_html_raw %>% 
+book_html_num <- books_html_raw %>% 
   html_nodes(xpath = '//*[@class="book_num"]') %>% html_text()
 
 # using html nodes again to extract all other table information
@@ -116,16 +113,24 @@ book_html_text <- str_replace_all(book_html_text, '\n', '')
 book_html_text <- str_replace_all(book_html_text, '\\s{2,6}', ' ')
 
 # since all years are of length four, was able to extract using regex
-book_dt_pub_html <- unlist(str_extract_all(book_html_text, '\\d{4}'))
+book_html_dt_pub <- unlist(str_extract_all(book_html_text, '\\d{4}'))
 
 # since all birthplaces had a comma separating locations, I used regex again
 # I could've used html_nodes, but wanted to practice regex more
-book_author_bp_html <- unlist(str_extract_all(book_html_text, '\\w.+,\\s\\w.+'))
-book_author_bp_html <- book_author_bp_html[-c(3)]
+book_html_author_bp <- unlist(str_extract_all(book_html_text, '\\w.+,\\s\\w.+'))
+book_html_author_bp <- book_html_author_bp[-c(3)]
 
 # since all quotes had smart quotes, could use regex to extract these into vector
-book_famous_quote_html <- str_replace_all(unlist(str_extract_all(book_html_text, '“.+?\\w+.+')), '[“”]', '')
+book_html_famous_quote <- str_replace_all(unlist(str_extract_all(book_html_text, '“.+?\\w+.+')), '[“”]', '')
 
+  
+for(i in 4:5){
+  book_html_amazon[i] <- book_html_amazon[3]
+  book_html_titles[i] <- book_html_titles[3]
+  book_html_dt_pub[i] <- book_html_dt_pub[3]
+  book_html_famous_quote[i] <- book_html_famous_quote[3]
+  book_html_num[i] <- book_html_num[3]
+}
 
 
 ```
