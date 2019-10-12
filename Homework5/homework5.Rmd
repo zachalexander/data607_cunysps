@@ -5,7 +5,11 @@ date: "10/9/2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+***
+
+## Libraries used:
+
+```{r setup, warning=FALSE, message=FALSE}
 library(RCurl)
 library(XML)
 library(stringr)
@@ -15,18 +19,25 @@ library(rvest)
 library(dplyr)
 library(knitr)
 library(kableExtra)
+library(jsonlite)
 ```
 
-### XML Extraction
+***
 
+## XML Extraction
+
+***
+
+#### First, I read in the raw xml file from my GitHub account
 ```{r}
-# read in the raw xml file from my GitHub account
 books_xml_raw <- getURL('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.xml')
+```
 
+***
 
-# creating an empty data frame with 5 rows and 7 columns
+#### Then, I created an empty data frame with 5 rows and 7 columns and renamed column headers
+```{r}
 books_xml_df <- data.frame(matrix(NA, nrow = 5, ncol = 7))
-
 
 # renaming column headers
 books_xml_df <- books_xml_df %>% 
@@ -37,7 +48,12 @@ books_xml_df <- books_xml_df %>%
          "author_first_name" = X5,
          "author_last_name" = X6,
          "author_birthplace" = X7)
+```
 
+***
+
+#### I decided to use regex to find the data I needed. I separated the data into vectors:
+```{r}
 # using regex to find the data needed
 book_xml_titles <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<title>.+>')), '<\\/?\\w+\\>', '')
 book_xml_dt_pub <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<date_published>.+>')), '<\\/?\\w+\\>', '')
@@ -49,8 +65,13 @@ book_xml_author_bp <- str_replace_all(unlist(str_extract_all(books_xml_raw, '<bi
 
 # creating a column to identify which book categorized in dataframe
 book_xml_num <- c('Book 1', 'Book 2', 'Book 3')
+```
 
+***
 
+#### Then, using a for loop I duplicated the book data for the third book since there were multiple authors for this book. This would allow the data frame to have the proper row length, and for me to be able to add in the other authors' names and information.
+
+```{r}
 # created a for loop to duplicate the data for the corresponding vectors in order to
 # develop separate dataframe of matching rows
 for(i in 4:5){
@@ -62,7 +83,6 @@ for(i in 4:5){
 }
 
 # changed the column names one more time to make it more presentable
-
 books_xml_df <- data.frame("Book Number" = book_xml_num,
                            "Title" = book_xml_titles,
                            "Date Published" = book_xml_dt_pub,
@@ -73,13 +93,29 @@ books_xml_df <- data.frame("Book Number" = book_xml_num,
                            "Author Birthplace" = book_xml_author_bp)
 ```
 
-### HTML Extraction
+***
 
+#### And finally, I printed the final data frame from the XML data
+```{r}
+kable(books_xml_df, align = rep('c', 8)) %>% 
+  kable_styling(bootstrap_options = c("striped"))
+```
+
+***
+
+## HTML Extraction
+
+***
+
+#### First, I read in the raw html file from my GitHub account, I used read_html to do this:
 ```{r}
 # read in the raw html table from my GitHub account
 books_html_raw <- read_html('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.html')
 ```
 
+***
+
+#### Then, utlizing the rvest package, I was able to use 'html_nodes' to isolate the data I needed based on the class name I had set up in the HTML table. I also used regex for a few of these extractions for practice.
 ```{r}
 # using html nodes to extract the book_num column
 book_html_num <- books_html_raw %>% 
@@ -98,7 +134,7 @@ book_html_author_ln <- books_html_raw %>%
   html_nodes(xpath = '//*[@class="auth_last_name"]') %>% html_text()
 
 # using html nodes to extract all values with class name of auth_last_name
-book_html_title <- books_html_raw %>% 
+book_html_titles <- books_html_raw %>% 
   html_nodes(xpath = '//*[@class="book_title"]') %>% html_text()
 
 # using html nodes to extract all values with class name of auth_last_name
@@ -130,8 +166,12 @@ book_html_author_bp <- book_html_author_bp[-c(3)]
 
 # since all quotes had smart quotes, could use regex to extract these into vector
 book_html_famous_quote <- str_replace_all(unlist(str_extract_all(book_html_text, '“.+?\\w+.+')), '[“”]', '')
+```
 
-  
+***
+
+#### After this, similar to the XML extraction, I used a for loop to duplicate the book data for the third book since there were multiple authors for this book. This would allow the data frame to have the proper row length, and for me to be able to add in the other authors' names and information.
+```{r}
 for(i in 4:5){
   book_html_amazon[i] <- book_html_amazon[3]
   book_html_titles[i] <- book_html_titles[3]
@@ -140,11 +180,83 @@ for(i in 4:5){
   book_html_num[i] <- book_html_num[3]
 }
 
+# changed the column names one more time to make it more presentable
+books_html_df <- data.frame("Book Number" = book_html_num,
+                           "Title" = book_html_titles,
+                           "Date Published" = book_html_dt_pub,
+                           "Famous Quote" = book_html_famous_quote,
+                           "Amazon Rating" = book_html_amazon,
+                           "Author First Name" = book_html_author_fn,
+                           "Author Last Name" = book_html_author_ln,
+                           "Author Birthplace" = book_html_author_bp)
 
 ```
 
+***
 
+#### And finally, I printed the final data frame from the HTML data
 
+```{r}
+kable(books_html_df, align = rep('c', 8)) %>% 
+  kable_styling(bootstrap_options = c("striped"))
+```
 
+***
 
+## JSON Extraction
 
+***
+
+#### I used the jsonlite package to read in the json data
+```{r}
+books_json_raw <- fromJSON('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/Homework5/books.json')
+```
+
+***
+
+#### Then, since the data is presented in the form of objects, I was able to isolate the data I needed and saved it to corresponding vectors:
+```{r}
+book_json_titles <- books_json_raw$myFavoriteBooks$books[[1]]$title
+book_json_dt_pub <- books_json_raw$myFavoriteBooks$books[[1]]$date_published
+book_json_famous_quote <- books_json_raw$myFavoriteBooks$books[[1]]$famous_quote
+book_json_amazon <- books_json_raw$myFavoriteBooks$books[[1]]$amazon_review_stars
+
+book_json_author_fn <- books_json_raw$myFavoriteBooks$authors[[1]]$first_name
+book_json_author_ln <- books_json_raw$myFavoriteBooks$authors[[1]]$last_name
+book_json_author_bp <- books_json_raw$myFavoriteBooks$authors[[1]]$birthplace
+book_json_num <- paste0('Book ', books_json_raw$myFavoriteBooks$authors[[1]]$book_id)
+```
+
+***
+
+#### After this, I used the same for loop structure to create the extra rows (similar to XML and HTML).
+
+```{r}
+for(i in 4:5){
+  book_json_amazon[i] <- book_json_amazon[3]
+  book_json_titles[i] <- book_json_titles[3]
+  book_json_dt_pub[i] <- book_json_dt_pub[3]
+  book_json_famous_quote[i] <- book_json_famous_quote[3]
+  book_json_num[i] <- book_json_num[3]
+}
+
+# changed the column names one more time to make it more presentable
+books_json_df <- data.frame("Book Number" = book_json_num,
+                           "Title" = book_json_titles,
+                           "Date Published" = book_json_dt_pub,
+                           "Famous Quote" = book_json_famous_quote,
+                           "Amazon Rating" = book_json_amazon,
+                           "Author First Name" = book_json_author_fn,
+                           "Author Last Name" = book_json_author_ln,
+                           "Author Birthplace" = book_json_author_bp)
+```
+
+***
+
+#### And finally, I printed the final data frame from the JSON data
+```{r}
+kable(books_json_df, align = rep('c', 8)) %>% 
+  kable_styling(bootstrap_options = c("striped"))
+```
+
+#### The way that I worked through the data extraction for the three data frames, I did come out with identical data frames. However, I could definitely see many other techniques that would make the data frames different from one another.
