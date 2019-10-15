@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dbConnect)
+library(stringr)
+library(tm)
 ```
 
 ## R Markdown
@@ -17,5 +19,33 @@ mydb = dbConnect(MySQL(), user='admin', password='project3', host='34.68.107.105
 scrape_df <- dbGetQuery(mydb, 'SELECT * FROM project3.project3_all')
 
 
+
+
+scrape_corpus <- dbGetQuery(mydb, 'SELECT * FROM project3.skills_text')
+
+scrape_df$job_description <- sapply(scrape_df$job_description,function(row) iconv(row, "latin1", "ASCII", sub=""))
+
+jobs.corpus <- VCorpus(VectorSource(scrape_df$job_description))
+Encoding(scrape_df[["job_description"]]) <- "UTF-8"
+jobs.corpus <- tm_map(jobs.corpus, content_transformer(tolower))
+as.character(jobs.corpus[[1]]) # examine the changes to job posting #1
+jobs.corpus <- tm_map(jobs.corpus, removeNumbers)
+jobs.corpus <- tm_map(jobs.corpus, removePunctuation)
+as.character(jobs.corpus[[1]])
+
+library(SnowballC)
+jobs.corpus <- tm_map(jobs.corpus, stemDocument) # Removing common word endings (e.g., “ing”, “es”, “s”)
+
+jobs.corpus <- tm_map(jobs.corpus, PlainTextDocument) # convert corpus to plain text doc for tdm
+
+df <- TermDocumentMatrix(jobs.corpus)
+df <- as.matrix(df) # convert TermDocumentMatrix object to a matrix object
+df <- data.frame(df) # convert matrix to a data frame
+
+names(df)[1:length(jobs)] <- paste("job", 1:length(jobs), sep="")
+
+# https://github.com/kc001/Blog_code/blob/master/2016.10%20Web%20scraping.R
+
+dbDisconnect(mydb)
 ```
 
