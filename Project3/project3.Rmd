@@ -1,0 +1,21 @@
+---
+title: "DATA 607 - Project 3 - Soft Skills"
+author: "Zach Alexander"
+date: "10/14/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dbConnect)
+```
+
+## R Markdown
+
+```{r}
+mydb = dbConnect(MySQL(), user='admin', password='project3', host='34.68.107.105', port = 3306)
+scrape_df <- dbGetQuery(mydb, 'SELECT * FROM project3.project3_all')
+
+
+```
+
