@@ -5,43 +5,101 @@ date: "10/14/2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dbConnect)
-library(stringr)
+library(rvest)
+library(dplyr)
 library(tm)
+library(SnowballC)
+library(RCurl)
+library(XML)
+library(RColorBrewer)
+library(tidyverse)
+library(stringr)
+library(stringi)
+```
+
+
+
+**First, lets load a serch page from Indeed with the query of Data Scientist Jobs based in a 15 mile radious around New York.**
+```{r}
+# full_df <- read.csv('C:/Users/zalexander/Desktop/indeedscrap.csv')
+full_df <- read.csv('C:/Users/zalexander/Desktop/IndeedScrapV2.csv')
 ```
 
 ## R Markdown
 
 ```{r}
-mydb = dbConnect(MySQL(), user='admin', password='project3', host='34.68.107.105', port = 3306)
-scrape_df <- dbGetQuery(mydb, 'SELECT * FROM project3.project3_all')
+url_1 <- "https://towardsdatascience.com/top-skills-every-data-scientist-needs-to-master-5aba4293b88"
+page_1 <- xml2::read_html(url)
 
-scrape_df$job_description <- sapply(scrape_df$job_description,function(row) iconv(row, "latin1", "ASCII", sub=""))
+skills_1 <- page_1 %>% 
+  rvest::html_nodes("div") %>% 
+  rvest::html_nodes("strong") %>% 
+  rvest::html_text()
 
-jobs.corpus <- VCorpus(VectorSource(scrape_df$job_description))
-Encoding(scrape_df[["job_description"]]) <- "UTF-8"
-jobs.corpus <- tm_map(jobs.corpus, content_transformer(tolower))
-as.character(jobs.corpus[[1]]) # examine the changes to job posting #1
-jobs.corpus <- tm_map(jobs.corpus, removeNumbers)
-jobs.corpus <- tm_map(jobs.corpus, removePunctuation)
-as.character(jobs.corpus[[1]])
+skills_1 <- skills_1[c(2:10)]
 
-library(SnowballC)
-jobs.corpus <- tm_map(jobs.corpus, stemDocument) # Removing common word endings (e.g., “ing”, “es”, “s”)
+url_1 <- "https://towardsdatascience.com/top-skills-every-data-scientist-needs-to-master-5aba4293b88"
+page_1 <- xml2::read_html(url)
 
-jobs.corpus <- tm_map(jobs.corpus, PlainTextDocument) # convert corpus to plain text doc for tdm
+skills_1 <- page %>% 
+  rvest::html_nodes("div") %>% 
+  rvest::html_nodes("strong") %>% 
+  rvest::html_text()
 
-df <- TermDocumentMatrix(jobs.corpus)
-df <- as.matrix(df) # convert TermDocumentMatrix object to a matrix object
-df <- data.frame(df) # convert matrix to a data frame
+skills_1 <- skills_1[c(2:10)]
 
-names(df)[1:length(jobs)] <- paste("job", 1:length(jobs), sep="")
+url_2 <- "https://www.thebalancecareers.com/list-of-data-scientist-skills-2062381"
+page_2 <- xml2::read_html(url_2)
 
-# http://www.kimberlycoffey.com/blog/2016/10/web-scraping-in-r
-# https://github.com/kc001/Blog_code/blob/master/2016.10%20Web%20scraping.R
+skills_2 <- page_2 %>% 
+  rvest::html_nodes('div') %>% 
+  rvest::html_nodes('ul') %>% 
+  rvest::html_nodes('li') %>% 
+  rvest::html_text()
 
-dbDisconnect(mydb)
+skills_2 <- skills_2[c(7:96)]
+
+skills_fnl <- append(skills_1, skills_2)
+
+skills_df <- data.frame(matrix(NA, nrow = length(skills_fnl), ncol = 2))
+skills_df <- skills_df %>% 
+  mutate(X1 = nrow(1:length(skills_fnl)),
+         X2 = skills_fnl) %>% 
+  mutate(X1 = seq.int(nrow(skills_df))) %>% 
+  select(X1, X2) %>% 
+  mutate(X2 = tolower(X2)) %>% 
+  distinct()
+
+
+write.csv(skills_df, file = "C:/Users/zalexander/Desktop/data607_cunysps/Project3/more_skills.csv")
+
+mydb = dbConnect(MySQL('project3'), user='admin', password='project3', host='34.68.107.105', port = 3306)
+# full_df <- dbGetQuery(mydb, 'SELECT * FROM project3.project3_all')
+soft_skills <- dbGetQuery(mydb, 'SELECT * FROM project3.skills_text')
+
+soft_skills <- soft_skills %>% 
+  mutate(Text = tolower(Text)) %>% 
+  mutate(Text = str_sub(Text, end = -2L))
+
+full_df <- full_df %>% 
+  mutate(job_description = tolower(job_description))
+
+final_df <- data.frame(matrix(NA, nrow = length(soft_skills$Text), ncol = 2))
+rows_soft_skils <- nrow(soft_skills)
+
+for (i in 1:rows_soft_skils) {
+  make_string <- soft_skills[i,2] %>% as.String()
+  frequency <- stri_count_regex(full_df$job_description, make_string) %>% 
+    as.data.frame() %>% 
+    colSums()
+  final_df[i,1] <- soft_skills[i,2]
+  final_df[i,2] <- frequency
+}  
 ```
+
+
+
 
