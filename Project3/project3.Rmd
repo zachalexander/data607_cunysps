@@ -18,33 +18,23 @@ library(RColorBrewer)
 library(tidyverse)
 library(stringr)
 library(stringi)
+library(xml2)
+library(ggplot2)
 ```
 
-
-
-**First, lets load a serch page from Indeed with the query of Data Scientist Jobs based in a 15 mile radious around New York.**
 ```{r}
-# full_df <- read.csv('C:/Users/zalexander/Desktop/indeedscrap.csv')
-full_df <- read.csv('C:/Users/zalexander/Desktop/IndeedScrapV2.csv')
+misha_df <- read.csv('https://raw.githubusercontent.com/mkollontai/DATA607/master/Project3/Data_vs_Nurse_Counts.csv')
 ```
 
 ## R Markdown
 
+
+## Web Scraping
 ```{r}
 url_1 <- "https://towardsdatascience.com/top-skills-every-data-scientist-needs-to-master-5aba4293b88"
-page_1 <- xml2::read_html(url)
+page_1 <- xml2::read_html(url_1)
 
 skills_1 <- page_1 %>% 
-  rvest::html_nodes("div") %>% 
-  rvest::html_nodes("strong") %>% 
-  rvest::html_text()
-
-skills_1 <- skills_1[c(2:10)]
-
-url_1 <- "https://towardsdatascience.com/top-skills-every-data-scientist-needs-to-master-5aba4293b88"
-page_1 <- xml2::read_html(url)
-
-skills_1 <- page %>% 
   rvest::html_nodes("div") %>% 
   rvest::html_nodes("strong") %>% 
   rvest::html_text()
@@ -69,20 +59,22 @@ skills_df <- skills_df %>%
   mutate(X1 = nrow(1:length(skills_fnl)),
          X2 = skills_fnl) %>% 
   mutate(X1 = seq.int(nrow(skills_df))) %>% 
-  select(X1, X2) %>% 
+  select(X2) %>% 
   mutate(X2 = tolower(X2)) %>% 
   distinct()
 
 
-write.csv(skills_df, file = "C:/Users/zalexander/Desktop/data607_cunysps/Project3/more_skills.csv")
+write.csv(skills_df, file = "~/Desktop/more_skills.csv")
 
-mydb = dbConnect(MySQL('project3'), user='admin', password='project3', host='34.68.107.105', port = 3306)
-# full_df <- dbGetQuery(mydb, 'SELECT * FROM project3.project3_all')
+mydb = dbConnect(MySQL(), user='admin', password='project3', host='34.68.107.105', port = 3306)
+full_df <- dbGetQuery(mydb, 'SELECT * FROM project3.indeed')
 soft_skills <- dbGetQuery(mydb, 'SELECT * FROM project3.skills_text')
 
 soft_skills <- soft_skills %>% 
   mutate(Text = tolower(Text)) %>% 
   mutate(Text = str_sub(Text, end = -2L))
+
+full_df$job_description <- iconv(full_df$job_description,"WINDOWS-1252","UTF-8")
 
 full_df <- full_df %>% 
   mutate(job_description = tolower(job_description))
@@ -100,6 +92,40 @@ for (i in 1:rows_soft_skils) {
 }  
 ```
 
+## Visualizations
+```{r}
+# frequency bar chart 1 (data)
+freq_bar <- misha_df %>% 
+  filter(DataCount >= 160) %>% 
+  arrange(DataCount)
 
+freq_bar_nurse <- misha_df %>% 
+  filter(NurseCount >= 40) %>% 
+  arrange(NurseCount)
+
+ggplot(freq_bar, aes(x=reorder(Text, DataCount),y=DataCount)) +
+  geom_bar(position="dodge",stat="identity", fill = "#0077b3", color = "#dddddd") + 
+  ylab('# of Mentions in Data Science Job Descriptions (n=1412)') +
+  xlab('Soft Skill') +
+  coord_flip() +
+  ggtitle("What are the most valued soft skills for Data Scientists?") + 
+  geom_text(aes(label=DataCount), vjust=0.5, hjust=1.10, position = position_dodge(width = 0.9), color="white", fontface="bold")
+
+# # frequency bar chart 2 (nurse)
+# freq_bar <- misha_df %>% 
+#   filter(DataCount >= 160) %>% 
+#   arrange(DataCount)
+# 
+# ggplot(freq_bar_nurse, aes(x=reorder(Text, NurseCount),y=NurseCount)) +
+#   geom_bar(position="dodge",stat="identity", fill = "#0077b3", color = "#dddddd") +
+#   ylab('# of Mentions in Nurse Job Descriptions (n=569)') +
+#   xlab('Soft Skill') +
+#   coord_flip() +
+#   ggtitle("What are the most valued soft skills for Nurses?") + 
+#   geom_text(aes(label=DataCount), vjust=0.5, hjust=1.10, position = position_dodge(width = 0.9), color="white", fontface="bold")
+
+
+  
+```
 
 
