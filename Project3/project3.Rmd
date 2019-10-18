@@ -64,7 +64,7 @@ skills_df <- skills_df %>%
   distinct()
 
 
-write.csv(skills_df, file = "~/Desktop/more_skills.csv")
+write.csv(skills_df, file = "C:/Users/zalexander/Desktop/data607_cunysps/Project3/more_skills.csv")
 
 mydb = dbConnect(MySQL(), user='admin', password='project3', host='34.68.107.105', port = 3306)
 full_df <- dbGetQuery(mydb, 'SELECT * FROM project3.indeed')
@@ -110,6 +110,27 @@ ggplot(freq_bar, aes(x=reorder(Text, DataCount),y=DataCount)) +
   coord_flip() +
   ggtitle("What are the most valued soft skills for Data Scientists?") + 
   geom_text(aes(label=DataCount), vjust=0.5, hjust=1.10, position = position_dodge(width = 0.9), color="white", fontface="bold")
+
+freq_bar_delta <- misha_df %>% 
+  filter(Delta >= 0.1 | Delta <= -0.05) %>% 
+  arrange(Delta) %>% 
+  mutate(fillColor = ifelse(Delta > 0, 
+                            'More Prevalent in Data Science Job Descriptions', 
+                            'More Prevalent in Nurse Job Descriptions'))
+
+ggplot(freq_bar_delta, aes(x=reorder(Text, Delta),y=Delta, fill=fillColor)) +
+  geom_bar(position="dodge",stat="identity", color = "#dddddd") + 
+  scale_fill_manual("Proportion of Skill", 
+                    values = c("More Prevalent in Data Science Job Descriptions" = "#C0DF85", 
+                               "More Prevalent in Nurse Job Descriptions" = "#FF958C")) +
+  theme(panel.background = element_blank()) +
+  theme(legend.title = element_blank()) +
+  ylim(-1.95, 1.95) +
+  ylab('Proportional difference') +
+  xlab('Soft Skill') +
+  coord_flip() +
+  geom_text(aes(label=round(Delta, digits = 2), y = Delta + 0.15 * sign(Delta)), position = position_dodge(width = 0.5), color="#333333", fontface="bold", size=3.5) +
+  theme(legend.position = "bottom")
 
 # # frequency bar chart 2 (nurse)
 # freq_bar <- misha_df %>% 
