@@ -327,6 +327,7 @@ plot(ca(k_pool), main = "Correspondence Analysis", pch = 19)
 
 ```
 
+
 ```{r}
 library(formattable)
 customGreen0 = "#DeF7E9"
