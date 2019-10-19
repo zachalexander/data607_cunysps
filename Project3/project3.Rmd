@@ -20,52 +20,48 @@ library(stringr)
 library(stringi)
 library(xml2)
 library(ggplot2)
+library(kableExtra)
+library(stringdist)
 ```
 
+***
+
+#### Jose scraping Data Science job descriptions
+
++ Jose did a great job initially scraping data from indeed.com. He located the search page, set the query to "Data Science Jobs" with a geotarget based on a 15-mile radius around New York.
+
++ Once he scraped the data from indeed.com, he then was able to manipulate and tidy the data into a data frame of 4 different columns, including "job_title", "company_name", "job_location", and "job_description". After a few attempts at this, he was able to pull in jobs data from 1,412 different listings for Data Science positions.
+
++ He also worked through a fair amount of string parsing, using various techniques such as a Textrank algorithm utilized by Google's Pagerank, Rapid Automatic Keyword Extraction (RAKE), Dependency parsing, and noun extraction. Although these techniques showed mild progress, there was unfortunately too much noise in the job descriptions, and it was hard to narrow down the extractions to soft skills.
+
++ Nonetheless, Jose set our group up really well with a large dataframe of Data Science jobs data, with a job descriptions vector that we could use for further analysis.
+
+***
+
+#### Steven's idea to use a pre-existing list of soft skills to filter out/extract soft skills from our job description vector
+
++ Because we had to filter out more of the noise in the job descriptions vector, Steven had the idea of using a pre-existing list of soft-skills to extract out of our noisy job description data. In order to build this pre-existing list, he decided to scrape a few websites that listed good soft-skills for all jobs, and manipulated these into a comprehensive list that we could use for later analysis.
+
+***
+
+#### John worked on setting up a centralized database for our normalized tables
+
++ While this was happening, John helped set up a Google Cloud instance for us to push all of our normalized tables into a database. Once he was able to set this up, we were able to all connect to one centralized database in order to do more frequency matching.
+
+
+***
+
+#### Frequency matching as a team
+
++ Once we were all connected to the database, we were then able to work through some frequency matching with our soft-skills list. A few of us worked through this in R and came up with similar counts.
+
++ Jose also did a search on indeed.com for Nurse Jobs in the same radius for New York. We thought it would be interesting to do a comparison between Data Science Jobs and Nurse Jobs to see if soft skill frequencies differ between the two types of jobs. Using the same soft skill list that John had created, Jose was able to use this to match against his Nurse job descriptions corpus.
+
+
++ As you'll see below, many of us did some frequency checks based on Steven's soft skills list and Jose's job description corpus
 ```{r}
-misha_df <- read.csv('https://raw.githubusercontent.com/mkollontai/DATA607/master/Project3/Data_vs_Nurse_Counts.csv')
-```
 
-## R Markdown
-
-
-## Web Scraping
-```{r}
-url_1 <- "https://towardsdatascience.com/top-skills-every-data-scientist-needs-to-master-5aba4293b88"
-page_1 <- xml2::read_html(url_1)
-
-skills_1 <- page_1 %>% 
-  rvest::html_nodes("div") %>% 
-  rvest::html_nodes("strong") %>% 
-  rvest::html_text()
-
-skills_1 <- skills_1[c(2:10)]
-
-url_2 <- "https://www.thebalancecareers.com/list-of-data-scientist-skills-2062381"
-page_2 <- xml2::read_html(url_2)
-
-skills_2 <- page_2 %>% 
-  rvest::html_nodes('div') %>% 
-  rvest::html_nodes('ul') %>% 
-  rvest::html_nodes('li') %>% 
-  rvest::html_text()
-
-skills_2 <- skills_2[c(7:96)]
-
-skills_fnl <- append(skills_1, skills_2)
-
-skills_df <- data.frame(matrix(NA, nrow = length(skills_fnl), ncol = 2))
-skills_df <- skills_df %>% 
-  mutate(X1 = nrow(1:length(skills_fnl)),
-         X2 = skills_fnl) %>% 
-  mutate(X1 = seq.int(nrow(skills_df))) %>% 
-  select(X2) %>% 
-  mutate(X2 = tolower(X2)) %>% 
-  distinct()
-
-
-write.csv(skills_df, file = "C:/Users/zalexander/Desktop/data607_cunysps/Project3/more_skills.csv")
-
+# using our centralized database, I pulled in data from our normalized tables and did some frequency matching
 mydb = dbConnect(MySQL(), user='admin', password='project3', host='34.68.107.105', port = 3306)
 full_df <- dbGetQuery(mydb, 'SELECT * FROM project3.indeed')
 soft_skills <- dbGetQuery(mydb, 'SELECT * FROM project3.skills_text')
@@ -90,9 +86,107 @@ for (i in 1:rows_soft_skils) {
   final_df[i,1] <- soft_skills[i,2]
   final_df[i,2] <- frequency
 }  
+
+final_df <- final_df %>% 
+  rename("Soft Skill" = X1,
+         "Frequency" = X2)
+
+final_df <- final_df %>% 
+  arrange(-Frequency)
+
+kable(head(final_df, n = 10L), align = rep('c', 2)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
 ```
 
-## Visualizations
++ Additionally, I put together a quick plot of these for the group. However, we decided to do a bit more analysis using our data and lists.
+
+```{r}
+
+final_df_sub <- final_df[c(1:12),]
+  
+
+ggplot(final_df_sub, aes(x=reorder(`Soft Skill`, Frequency),y=Frequency)) +
+  geom_bar(position="dodge",stat="identity", fill = "#0077b3", color = "#dddddd") + 
+  ylab('# of Mentions in Data Science Job Descriptions (n=1412)') +
+  xlab('Soft Skill') +
+  coord_flip() +
+  ggtitle("What are the most valued soft skills for Data Scientists?") + 
+  geom_text(aes(label=Frequency), vjust=0.5, hjust=1.10, position = position_dodge(width = 0.9), color="white", fontface="bold")
+
+```
+
+
+
+***
+
+### Web Scraping Hard Skills
+
++ I also thought it would be interesting to build out one final list of *hard* skills for data scientists. In the end, I was thinking we could use this list to compare some of the most common hard skills to the soft skills we've been working with. Therefore, you can find my code below that outlines this process. Some of the skills I pulled into my list below were also added into our larger soft-skills list since they qualified more as soft skills than hard skills - John parsed through the list that I sent along and made these distinctions before uploading the hard skill list into the database as a separate normalized table.
+```{r}
+# found one website with a good list of hard skills for data scientists
+url_1 <- "https://towardsdatascience.com/top-skills-every-data-scientist-needs-to-master-5aba4293b88"
+page_1 <- xml2::read_html(url_1)
+
+
+# after reading in this html data, I then manipulated it and extracted the relevant skills
+skills_1 <- page_1 %>% 
+  rvest::html_nodes("div") %>% 
+  rvest::html_nodes("strong") %>% 
+  rvest::html_text()
+
+skills_1 <- skills_1[c(2:10)]
+
+
+# I found a second website with a long list of hard skills for data scientists
+url_2 <- "https://www.thebalancecareers.com/list-of-data-scientist-skills-2062381"
+page_2 <- xml2::read_html(url_2)
+
+
+# again, after reading in this html data I extracted the relevant skills
+skills_2 <- page_2 %>% 
+  rvest::html_nodes('div') %>% 
+  rvest::html_nodes('ul') %>% 
+  rvest::html_nodes('li') %>% 
+  rvest::html_text()
+
+skills_2 <- skills_2[c(7:96)]
+
+# I then appended both lists into one long list
+skills_fnl <- append(skills_1, skills_2)
+
+# in order to export it to a csv, I converted the combined lists to a dataframe and
+# made the skills all lowercase for ease in analysis later on
+skills_df <- data.frame(matrix(NA, nrow = length(skills_fnl), ncol = 2))
+skills_df <- skills_df %>% 
+  mutate(X1 = nrow(1:length(skills_fnl)),
+         X2 = skills_fnl) %>% 
+  mutate(X1 = seq.int(nrow(skills_df))) %>% 
+  select(X2) %>% 
+  mutate(X2 = tolower(X2)) %>% 
+  distinct()
+
+# I then saved this to a csv file and sent it along to John to upload into our centralized database
+write.csv(skills_df, file = "C:/Users/zalexander/Desktop/data607_cunysps/Project3/more_skills.csv")
+
+```
+
+
+***
+
+#### Comparisons across the Data Science and Nurse Job Descriptions (calculating proportions)
+
++ Once we had confirmed many of our frequencies, Misha took the counts from both the Data Science table and the Nurse table and combined it into one data frame. He then was able to calculate proportions of the prevalence of each soft skill out of the total soft skills in each list. Finally, he subtracted the proportions for each soft skill across the two different job descriptions to get a delta value.
+
+***
+
+#### Visualizations of our analysis
+
++ The delta value that Misha calculated is a good way to compare the soft skills prioritized by Data Science jobs compared to Nurse jobs. The higher the delta value, the more the soft skill is prioritized by Data Science jobs, the smaller the delta value, the more the soft skill is valued by Nurse jobs. Below, you can see that I read in Misha's data frame and plotted the most extreme deltas (both ways), on one plot for our group.
+
+```{r}
+misha_df <- read.csv('https://raw.githubusercontent.com/mkollontai/DATA607/master/Project3/Data_vs_Nurse_Counts.csv')
+```
+
 ```{r}
 # frequency bar chart 1 (data)
 freq_bar <- misha_df %>% 
@@ -102,14 +196,6 @@ freq_bar <- misha_df %>%
 freq_bar_nurse <- misha_df %>% 
   filter(NurseCount >= 40) %>% 
   arrange(NurseCount)
-
-ggplot(freq_bar, aes(x=reorder(Text, DataCount),y=DataCount)) +
-  geom_bar(position="dodge",stat="identity", fill = "#0077b3", color = "#dddddd") + 
-  ylab('# of Mentions in Data Science Job Descriptions (n=1412)') +
-  xlab('Soft Skill') +
-  coord_flip() +
-  ggtitle("What are the most valued soft skills for Data Scientists?") + 
-  geom_text(aes(label=DataCount), vjust=0.5, hjust=1.10, position = position_dodge(width = 0.9), color="white", fontface="bold")
 
 freq_bar_delta <- misha_df %>% 
   filter(Delta >= 0.1 | Delta <= -0.05) %>% 
@@ -131,22 +217,127 @@ ggplot(freq_bar_delta, aes(x=reorder(Text, Delta),y=Delta, fill=fillColor)) +
   coord_flip() +
   geom_text(aes(label=round(Delta, digits = 2), y = Delta + 0.15 * sign(Delta)), position = position_dodge(width = 0.5), color="#333333", fontface="bold", size=3.5) +
   theme(legend.position = "bottom")
-
-# # frequency bar chart 2 (nurse)
-# freq_bar <- misha_df %>% 
-#   filter(DataCount >= 160) %>% 
-#   arrange(DataCount)
-# 
-# ggplot(freq_bar_nurse, aes(x=reorder(Text, NurseCount),y=NurseCount)) +
-#   geom_bar(position="dodge",stat="identity", fill = "#0077b3", color = "#dddddd") +
-#   ylab('# of Mentions in Nurse Job Descriptions (n=569)') +
-#   xlab('Soft Skill') +
-#   coord_flip() +
-#   ggtitle("What are the most valued soft skills for Nurses?") + 
-#   geom_text(aes(label=DataCount), vjust=0.5, hjust=1.10, position = position_dodge(width = 0.9), color="white", fontface="bold")
-
-
-  
 ```
 
+As we can see from the plot, "Analysis", "Research", "Focus", "Insight", "Design", and "Organization" are more prevalent in Data Science job descriptions than in Nurse job descriptions. Conversely, "Professional", "Planning", "Coordination", "Customer Service", and "Commitment" are more prevalent in Nurse job descriptions than Data Science job descriptions.
+
+
+***
+
+```{r}
+top_skills <- full_df %>% 
+  filter(str_detect(job_description, 'machine\\s\\learning') |
+         str_detect(job_description, 'research') |
+         str_detect(job_description, 'python') |
+         str_detect(job_description, 'statistics'))
+
+full_df_rows <- nrow(full_df)
+top_skill_rows <- nrow(top_skills)
+
+paste0('Proportion of top hard skills in job descriptions = ', round(top_skill_rows/full_df_rows, digits = 4))
+```
+
+***
+#### Key Word in Context (KWIC) Listings
+
++ Finally, I did some [text analysis research](https://kenbenoit.net/pdfs/text_analysis_in_R.pdf) and found this R package ('corpustools'), that would allow me to find the number of hits that two words would be found within a given distance from one another in a corpus. I thought it would be interesting to do some tests on our top hard skill and top soft skill words, and see if certain hard skills frequently found closer (or were associated) with our top soft skills.
+```{r, warning=FALSE, message=FALSE}
+library(corpustools)
+library(ca)
+
+tc <- create_tcorpus(full_df$job_description)
+
+hits_1_2 <- tc$search_features('"analysis machine*"~40')
+hits_1_3 <- tc$search_features('"analysis sql"~40')
+hits_1_4 <- tc$search_features('"analysis python"~40')
+hits_1_5 <- tc$search_features('"analysis statistics"~40')
+
+hits_2_2 <- tc$search_features('"research machine*"~40')
+hits_2_3 <- tc$search_features('"research sql"~40')
+hits_2_4 <- tc$search_features('"research python"~40')
+hits_2_5 <- tc$search_features('"research statistics"~40')
+
+hits_3_2 <- tc$search_features('"focus machine*"~40')
+hits_3_3 <- tc$search_features('"focus sql"~40')
+hits_3_4 <- tc$search_features('"focus python"~40')
+hits_3_5 <- tc$search_features('"focus statistics"~40')
+
+hits_4_2 <- tc$search_features('"insight machine*"~40')
+hits_4_3 <- tc$search_features('"insight sql"~40')
+hits_4_4 <- tc$search_features('"insight python"~40')
+hits_4_5 <- tc$search_features('"insight statistics"~40')
+
+kwic_1_2 <- tc$kwic(hits_1_2, ntokens = 3)
+kwic_1_3 <- tc$kwic(hits_1_3, ntokens = 3)
+kwic_1_4 <- tc$kwic(hits_1_4, ntokens = 3)
+kwic_1_5 <- tc$kwic(hits_1_5, ntokens = 3)
+
+kwic_2_2 <- tc$kwic(hits_2_2, ntokens = 3)
+kwic_2_3 <- tc$kwic(hits_2_3, ntokens = 3)
+kwic_2_4 <- tc$kwic(hits_2_4, ntokens = 3)
+kwic_2_5 <- tc$kwic(hits_2_5, ntokens = 3)
+
+kwic_3_2 <- tc$kwic(hits_3_2, ntokens = 3)
+kwic_3_3 <- tc$kwic(hits_3_3, ntokens = 3)
+kwic_3_4 <- tc$kwic(hits_3_4, ntokens = 3)
+kwic_3_5 <- tc$kwic(hits_3_5, ntokens = 3)
+
+kwic_4_2 <- tc$kwic(hits_4_2, ntokens = 3)
+kwic_4_3 <- tc$kwic(hits_4_3, ntokens = 3)
+kwic_4_4 <- tc$kwic(hits_4_4, ntokens = 3)
+kwic_4_5 <- tc$kwic(hits_4_5, ntokens = 3)
+
+k1 <- as.double(nrow(kwic_1_2))
+k2 <- as.double(nrow(kwic_1_3))
+k3 <- as.double(nrow(kwic_1_4))
+k4 <- as.double(nrow(kwic_1_5))
+
+k5 <- as.double(nrow(kwic_2_2))
+k6 <- as.double(nrow(kwic_2_3))
+k7 <- as.double(nrow(kwic_2_4))
+k8 <- as.double(nrow(kwic_2_5))
+
+k9 <- as.double(nrow(kwic_3_2))
+k10 <- as.double(nrow(kwic_3_3))
+k11 <- as.double(nrow(kwic_3_4))
+k12 <- as.double(nrow(kwic_3_5))
+
+k13 <- as.double(nrow(kwic_4_2))
+k14 <- as.double(nrow(kwic_4_3))
+k15 <- as.double(nrow(kwic_4_4))
+k16 <- as.double(nrow(kwic_4_5))
+
+k_pool <- data.frame(rbind(c(k1, k2, k3, k4),
+                c(k5, k6, k7, k8),           
+                c(k9, k10, k11, k12),
+                c(k13, k14, k15, k16)))
+
+softskills <- c('analysis', 'research', 'focus', 'insight')
+rownames(k_pool) <- softskills
+
+
+k_pool <- k_pool %>% 
+  rename("machine_learning" = X1,
+         "sql" = X2,
+         "python" = X3,
+         "statistics" = X4)
+
+
+plot(ca(k_pool), main = "Correspondence Analysis", pch = 19)
+
+```
+
+```{r}
+library(formattable)
+customGreen0 = "#DeF7E9"
+customGreen = "#71CA97"
+
+formattable(k_pool, align =c("c","c","c","c"), list(
+  machine_learning= color_tile(customGreen0, customGreen),
+  sql= color_tile(customGreen0, customGreen),
+  statistics= color_tile(customGreen0, customGreen),
+  python= color_tile(customGreen0, customGreen),
+  statistics= color_tile(customGreen0, customGreen)
+))
+```
 
