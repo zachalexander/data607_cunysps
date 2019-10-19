@@ -7,21 +7,21 @@ output: html_document
 
 ```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(dbConnect)
-library(rvest)
-library(dplyr)
-library(tm)
-library(SnowballC)
-library(RCurl)
-library(XML)
-library(RColorBrewer)
-library(tidyverse)
-library(stringr)
-library(stringi)
-library(xml2)
-library(ggplot2)
-library(kableExtra)
-library(stringdist)
+require(dbConnect)
+require(rvest)
+require(dplyr)
+require(tm)
+require(SnowballC)
+require(RCurl)
+require(XML)
+require(RColorBrewer)
+require(tidyverse)
+require(stringr)
+require(stringi)
+require(xml2)
+require(ggplot2)
+require(kableExtra)
+require(stringdist)
 ```
 
 ***
@@ -242,8 +242,8 @@ paste0('Proportion of top hard skills in job descriptions = ', round(top_skill_r
 
 + Finally, I did some [text analysis research](https://kenbenoit.net/pdfs/text_analysis_in_R.pdf) and found this R package ('corpustools'), that would allow me to find the number of hits that two words would be found within a given distance from one another in a corpus. I thought it would be interesting to do some tests on our top hard skill and top soft skill words, and see if certain hard skills frequently found closer (or were associated) with our top soft skills.
 ```{r, warning=FALSE, message=FALSE}
-library(corpustools)
-library(ca)
+require(corpustools)
+require(ca)
 
 tc <- create_tcorpus(full_df$job_description)
 
