@@ -5,29 +5,39 @@ date: "10/22/2019"
 output: html_document
 ---
 
-### Libraries used
-```{r, include=FALSE}
+***
+
+#### Libraries used
+```{r, warning=FALSE, message=FALSE}
 library(httr)
+library(knitr)
+library(kableExtra)
 ```
 
-### For this assignment, I used the ["Times Newswire API"](https://developer.nytimes.com/docs/timeswire-product/1/overview)
+***
 
-+ This API is set up to hold an up to the minute stream of the latest articles published by the New York Times  
+#### For this assignment, I used the ["Times Newswire API"](https://developer.nytimes.com/docs/timeswire-product/1/overview)
 
-+ This stream holds 20 of the latest articles
+> This API is set up to hold an up to the minute stream of the latest articles published by the New York Times. 
+> This stream holds 20 of the latest articles.
+
+
 ```{r}
 # save the url with api-key
 url <- "https://api.nytimes.com/svc/news/v3/content/all/all.json?api-key=SoV2EDJdCsYfjVcQeelgFOdkaAlJtPts"
 ```
 
+***
 
-### Using the httr library to get the json data from the API
+#### Using the httr library to get the json data from the API
 ```{r}
 nyt <- GET(url)
 ```
 
 
-### Parsing the json data, and saving certain parts in vectors
+***
+
+#### Parsing the json data, and saving certain parts in vectors
 ```{r}
 details <- content(nyt, "parse")
 
@@ -49,17 +59,25 @@ for(i in 1:length(details$results)){
 
 ```
 
-### Saving to a final data frame
+
+***
+
+#### Saving to a final data frame
+
 ```{r}
 # adding all of the vectors to a final dataframe
 final_df <- data.frame(titles, abstracts, sections, pb_date, urls)
 
 # printing the final dataframe
-final_df
+kable(final_df, align = rep('c', 5)) %>% 
+  kable_styling(bootstrap_options = c("striped"), full_width = F)
 ```
 
-### Similar work in python
 
-+ I also decided to build this out in Python as well, to gain a little more experience working with the Pandas library and python code. If interested, you can find my code at this Jupyter Notebook file on my GitHub repository.
+***
 
-+ Here is an html version of this file.
+#### Similar work in python
+
+> I also decided to build this out in Python as well, to gain a little more experience working with the Pandas library and python code. If interested, you can find my code at this Jupyter Notebook file on my [GitHub repository](https://github.com/zachalexander/data607_cunysps/tree/master/Homework6) as the .ipynb file.  
+
+> An html version of this file is also at the same location as above.
