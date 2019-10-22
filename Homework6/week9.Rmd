@@ -1,0 +1,65 @@
+---
+title: "DATA 607 - Week 9 Homework"
+author: "Zach Alexander"
+date: "10/22/2019"
+output: html_document
+---
+
+### Libraries used
+```{r, include=FALSE}
+library(httr)
+```
+
+### For this assignment, I used the ["Times Newswire API"](https://developer.nytimes.com/docs/timeswire-product/1/overview)
+
++ This API is set up to hold an up to the minute stream of the latest articles published by the New York Times  
+
++ This stream holds 20 of the latest articles
+```{r}
+# save the url with api-key
+url <- "https://api.nytimes.com/svc/news/v3/content/all/all.json?api-key=SoV2EDJdCsYfjVcQeelgFOdkaAlJtPts"
+```
+
+
+### Using the httr library to get the json data from the API
+```{r}
+nyt <- GET(url)
+```
+
+
+### Parsing the json data, and saving certain parts in vectors
+```{r}
+details <- content(nyt, "parse")
+
+# creating empty vectors to store results in the following for loop
+titles = vector()
+abstracts = vector()
+sections = vector()
+pb_date = vector()
+urls = vector()
+
+# iterating through the parsed results and storing data from various sections in vectors to be used later to combine into the final dataframe
+for(i in 1:length(details$results)){
+  titles[i] <- details$results[[i]]$title
+  abstracts[i] <- details$results[[i]]$abstract
+  sections[i] <- details$results[[i]]$section
+  pb_date[i] <- details$results[[i]]$published_date
+  urls[i] <- details$results[[i]]$url
+}
+
+```
+
+### Saving to a final data frame
+```{r}
+# adding all of the vectors to a final dataframe
+final_df <- data.frame(titles, abstracts, sections, pb_date, urls)
+
+# printing the final dataframe
+final_df
+```
+
+### Similar work in python
+
++ I also decided to build this out in Python as well, to gain a little more experience working with the Pandas library and python code. If interested, you can find my code at this Jupyter Notebook file on my GitHub repository.
+
++ Here is an html version of this file.
