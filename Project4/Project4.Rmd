@@ -1,0 +1,43 @@
+---
+title: "DATA 607 - Project 4"
+author: "Zach Alexander"
+date: "October 28, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tm)
+library(stringr)
+library(SnowballC)
+```
+
+## R Markdown
+
+```{r}
+spam <- VCorpus(DirSource(directory = 'C:/Users/zalexander/Desktop/data607_cunysps/Project4/spam'))
+spam
+
+for(i in 1:length(spam)){
+  meta(spam[[i]], "email_group") <- "spam"
+}
+
+
+ham <- VCorpus(DirSource(directory = 'C:/Users/zalexander/Desktop/data607_cunysps/Project4/easy_ham'))
+ham
+
+for(i in 1:length(ham)){
+  meta(ham[[i]], "email_group") <- "ham"
+}
+
+all_emails <- c(spam, ham)
+email_type <- as.factor(as.factor(as.vector(unname(unlist(meta(all_emails, "email_group"))))))
+head(email_type)
+```
+
+
+```{r}
+td_corpus = c(spam, ham)
+length(td_corpus$content)
+```
+
