@@ -9,6 +9,7 @@ output: html_document
 
 #### Libraries used
 ```{r, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 library(httr)
 library(knitr)
 library(kableExtra)
