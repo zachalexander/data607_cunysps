@@ -18,7 +18,7 @@ library(corpus)
 ## R Markdown
 
 ```{r}
-spam <- VCorpus(DirSource(directory = '/Users/zdalexander/Desktop/grad_school/data_607_cunysps/data607_cunysps/Project4/spam'))
+spam <- VCorpus(DirSource(directory = 'C:/Users/zalexander/Desktop/data607_cunysps/Project4/spam'))
 
 for(i in 1:length(spam)){
   as_corpus_text(iconv(content(spam[[i]]), "Latin1", "UTF-8", sub = ""))
@@ -26,7 +26,7 @@ for(i in 1:length(spam)){
 }
 
 
-ham <- VCorpus(DirSource(directory = '/Users/zdalexander/Desktop/grad_school/data_607_cunysps/data607_cunysps/Project4/easy_ham'))
+ham <- VCorpus(DirSource(directory = 'C:/Users/zalexander/Desktop/data607_cunysps/Project4/easy_ham'))
 ham
 
 for(i in 1:length(ham)){
@@ -42,9 +42,11 @@ all_emails = tm_map(all_emails, removeNumbers)
 all_emails = tm_map(all_emails, removePunctuation)
 all_emails = tm_map(all_emails, stripWhitespace)
 
-## not working
+## not working on Mac
 all_emails <- tm_map(all_emails, removeWords, stopwords("english"))
 all_emails <- tm_map(all_emails, content_transformer(tolower))
+
+all_emails[[2]]$content
 ```
 
 
