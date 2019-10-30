@@ -5,7 +5,9 @@ date: "October 28, 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+***
+#### Libraries used
+```{r setup, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tm)
 library(stringr)
@@ -13,48 +15,135 @@ library(SnowballC)
 library(tidyverse)
 library(stringi)
 library(corpus)
+library(wordcloud)
+library(e1071)
 ```
 
-## R Markdown
+***
 
+#### Downloading the emails
+
+```{r, message=FALSE, warning=FALSE}
+download.file(url = "http://spamassassin.apache.org/old/publiccorpus/20021010_easy_ham.tar.bz2", destfile = "20021010_easy_ham.tar.bz2")
+untar("20021010_easy_ham.tar.bz2",compressed = "bzip2")
+ham_emails = list.files(path = "easy_ham",full.names = TRUE)
+
+download.file(url = "http://spamassassin.apache.org/old/publiccorpus/20030228_spam_2.tar.bz2", destfile = "20030228_spam_2.tar.bz2")
+untar("20030228_spam_2.tar.bz2", compressed = "bzip2")
+spam_emails = list.files(path = "spam_2", full.names = TRUE)
+```
+
+***
+
+#### Saving all the emails in a "spam" and "ham" list
 ```{r}
-spam <- VCorpus(DirSource(directory = 'C:/Users/zalexander/Desktop/data607_cunysps/Project4/spam'))
-
-for(i in 1:length(spam)){
-  as_corpus_text(iconv(content(spam[[i]]), "Latin1", "UTF-8", sub = ""))
-  meta(spam[[i]], "email_group") <- "spam"
+spam_emails_list <- NA
+for (i in 1:length(spam_emails)){
+  email_text1 <- readLines(spam_emails[i])
+  email_list1 <- list(paste(email_text1, collapse = "\n"))
+  spam_emails_list <- c(spam_emails_list, email_list1)
 }
 
-
-ham <- VCorpus(DirSource(directory = 'C:/Users/zalexander/Desktop/data607_cunysps/Project4/easy_ham'))
-ham
-
-for(i in 1:length(ham)){
-  as_corpus_text(iconv(content(ham[[i]]), "Latin1", "UTF-8", sub = ""))
-  meta(ham[[i]], "email_group") <- "ham"
+ham_emails_list <- NA
+for (i in 1:length(ham_emails)){
+  email_text <- readLines(ham_emails[i])
+  email_list <- list(paste(email_text, collapse = "\n"))
+  ham_emails_list <- c(ham_emails_list, email_list)
 }
 
-all_emails <- c(spam, ham)
+# removing blank first item in lists
+ham_emails_list <- ham_emails_list[-1]
+spam_emails_list <- spam_emails_list[-1]
 ```
 
+***
+#### Creating dataframes from "spam" and "ham" lists
+
 ```{r}
-all_emails = tm_map(all_emails, removeNumbers)
-all_emails = tm_map(all_emails, removePunctuation)
-all_emails = tm_map(all_emails, stripWhitespace)
+ham_df <- data.frame(unlist(ham_emails_list))
+ham_df$email_group <- 'ham'
 
-## not working on Mac
-all_emails <- tm_map(all_emails, removeWords, stopwords("english"))
-all_emails <- tm_map(all_emails, content_transformer(tolower))
+ham_df <- ham_df %>% 
+  rename("email_text" = unlist.ham_emails_list.)
 
-all_emails[[2]]$content
+spam_df <- data.frame(unlist(spam_emails_list))
+spam_df$email_group <- 'spam'
+
+spam_df <- spam_df %>% 
+  rename("email_text" = unlist.spam_emails_list.)
+```
+
+***
+#### Combining the two dataframes into one
+```{r}
+full_email_df <- rbind(ham_df, spam_df)
+```
+
+***
+#### Fixing encoding of email text
+```{r}
+spam_df$email_text <- iconv(spam_df$email_text, "ASCII", "UTF-8", sub="byte")
+ham_df$email_text <- iconv(ham_df$email_text, "ASCII", "UTF-8", sub="byte")
+full_email_df$email_text <- iconv(full_email_df$email_text, "ASCII", "UTF-8", sub="byte")
 ```
 
 
+***
+
+#### Creating a corpus and cleaning the corpus
+```{r, warning=FALSE, message=FALSE}
+spamCorpus <- Corpus(VectorSource(spam_df$email_text))
+hamCorpus <- Corpus(VectorSource(ham_df$email_text))
+spam_hamCorpus <- Corpus(VectorSource(full_email_df$email_text))
+
+spamCorpus <- tm_map(spamCorpus, removeNumbers)
+spamCorpus <- tm_map(spamCorpus, removePunctuation)
+spamCorpus <- tm_map(spamCorpus, stripWhitespace)
+spamCorpus <- tm_map(spamCorpus, removeWords, stopwords())
+spamCorpus <- tm_map(spamCorpus, content_transformer(tolower))
+
+hamCorpus <- tm_map(hamCorpus, removeNumbers)
+hamCorpus <- tm_map(hamCorpus, removePunctuation)
+hamCorpus <- tm_map(hamCorpus, stripWhitespace)
+hamCorpus <- tm_map(hamCorpus, removeWords, stopwords())
+hamCorpus <- tm_map(hamCorpus, content_transformer(tolower))
+
+spam_hamCorpus <- tm_map(spam_hamCorpus, removeNumbers)
+spam_hamCorpus <- tm_map(spam_hamCorpus, removePunctuation)
+spam_hamCorpus <- tm_map(spam_hamCorpus, stripWhitespace)
+spam_hamCorpus <- tm_map(spam_hamCorpus, removeWords, stopwords())
+spam_hamCorpus <- tm_map(spam_hamCorpus, content_transformer(tolower))
+```
+
+***
+#### Creating document term matrix
 ```{r}
-analysis <- all_emails %>%
-  meta(tag = "email_group") %>%
-  unlist() %>%
-  table() 
-analysis
+spamDTM <- TermDocumentMatrix(spamCorpus)
+hamDTM <- TermDocumentMatrix(hamCorpus)
+spam_hamDTM <- TermDocumentMatrix(spam_hamCorpus)
+```
+
+***
+#### Finding the most frequent terms in the corpus
+```{r}
+
+spamDTM_matrix <- as.matrix(spamDTM)
+spam_v <- sort(rowSums(spamDTM_matrix),decreasing=TRUE)
+spam_freq <- data.frame(word = names(spam_v),freq=spam_v)
+
+hamDTM_matrix <- as.matrix(hamDTM)
+ham_v <- sort(rowSums(hamDTM_matrix),decreasing=TRUE)
+ham_freq <- data.frame(word = names(ham_v),freq=ham_v)
+
+```
+
+***
+#### Generate word clouds
+```{r}
+# spam word cloud
+suppressWarnings(wordcloud(spam_freq$word, spam_freq$freq, min.freq=550))
+
+# ham word cloud
+suppressWarnings(wordcloud(ham_freq$word, ham_freq$freq, min.freq=850, scale=c(3.5,0.15)))
 ```
 
