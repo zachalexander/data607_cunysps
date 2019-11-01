@@ -17,6 +17,10 @@ library(stringi)
 library(corpus)
 library(wordcloud)
 library(e1071)
+library(NLP)
+library(kableExtra)
+library(corpus)
+library(caret)
 ```
 
 ***
@@ -63,13 +67,13 @@ spam_emails_list <- spam_emails_list[-1]
 ham_df <- data.frame(unlist(ham_emails_list))
 ham_df$email_group <- 'ham'
 
-ham_df <- ham_df %>% 
+ham_df <- ham_df %>%
   rename("email_text" = unlist.ham_emails_list.)
 
 spam_df <- data.frame(unlist(spam_emails_list))
 spam_df$email_group <- 'spam'
 
-spam_df <- spam_df %>% 
+spam_df <- spam_df %>%
   rename("email_text" = unlist.spam_emails_list.)
 ```
 
@@ -82,9 +86,10 @@ full_email_df <- rbind(ham_df, spam_df)
 ***
 #### Fixing encoding of email text
 ```{r}
-spam_df$email_text <- iconv(spam_df$email_text, "ASCII", "UTF-8", sub="byte")
-ham_df$email_text <- iconv(ham_df$email_text, "ASCII", "UTF-8", sub="byte")
-full_email_df$email_text <- iconv(full_email_df$email_text, "ASCII", "UTF-8", sub="byte")
+rm(email_list1, email_list, i, email_text, email_text1, ham_emails_list, spam_emails_list)
+# spam_df$email_text <- iconv(spam_df$email_text, "ASCII", "UTF-8", sub="byte")
+# ham_df$email_text <- iconv(ham_df$email_text, "ASCII", "UTF-8", sub="byte")
+# full_email_df$email_text <- iconv(full_email_df$email_text, "ASCII", "UTF-8", sub="byte")
 ```
 
 
@@ -92,9 +97,23 @@ full_email_df$email_text <- iconv(full_email_df$email_text, "ASCII", "UTF-8", su
 
 #### Creating a corpus and cleaning the corpus
 ```{r, warning=FALSE, message=FALSE}
-spamCorpus <- Corpus(VectorSource(spam_df$email_text))
-hamCorpus <- Corpus(VectorSource(ham_df$email_text))
-spam_hamCorpus <- Corpus(VectorSource(full_email_df$email_text))
+spamCorpus <- VCorpus(DirSource(directory = 'spam_2'))
+hamCorpus <- VCorpus(DirSource(directory = 'easy_ham'))
+
+addFilter <- function(corpus, group, value){
+  for(i in 1:length(corpus)){
+    as_corpus_text(iconv(content(corpus[[i]]), "Latin1", "UTF-8", sub = ""))
+    meta(corpus[[i]], type = "local", tag = group) <- value
+  }
+  return(corpus)
+}
+
+spamCorpus <- spamCorpus %>% 
+  addFilter(group = "email_group", value = "spam")
+
+hamCorpus <- hamCorpus %>% 
+  addFilter(group = "email_group", value = "ham")
+
 
 spamCorpus <- tm_map(spamCorpus, removeNumbers)
 spamCorpus <- tm_map(spamCorpus, removePunctuation)
@@ -108,25 +127,21 @@ hamCorpus <- tm_map(hamCorpus, stripWhitespace)
 hamCorpus <- tm_map(hamCorpus, removeWords, stopwords())
 hamCorpus <- tm_map(hamCorpus, content_transformer(tolower))
 
-spam_hamCorpus <- tm_map(spam_hamCorpus, removeNumbers)
-spam_hamCorpus <- tm_map(spam_hamCorpus, removePunctuation)
-spam_hamCorpus <- tm_map(spam_hamCorpus, stripWhitespace)
-spam_hamCorpus <- tm_map(spam_hamCorpus, removeWords, stopwords())
-spam_hamCorpus <- tm_map(spam_hamCorpus, content_transformer(tolower))
+spam_hamCorpus <- c(spamCorpus, hamCorpus)
 ```
 
 ***
-#### Creating document term matrix
+#### Creating term document matrix
 ```{r}
 spamDTM <- TermDocumentMatrix(spamCorpus)
 hamDTM <- TermDocumentMatrix(hamCorpus)
-spam_hamDTM <- TermDocumentMatrix(spam_hamCorpus)
+spam_hamDTM <- DocumentTermMatrix(spam_hamCorpus)
+spam_hamDTM
 ```
 
 ***
 #### Finding the most frequent terms in the corpus
 ```{r}
-
 spamDTM_matrix <- as.matrix(spamDTM)
 spam_v <- sort(rowSums(spamDTM_matrix),decreasing=TRUE)
 spam_freq <- data.frame(word = names(spam_v),freq=spam_v)
@@ -134,7 +149,6 @@ spam_freq <- data.frame(word = names(spam_v),freq=spam_v)
 hamDTM_matrix <- as.matrix(hamDTM)
 ham_v <- sort(rowSums(hamDTM_matrix),decreasing=TRUE)
 ham_freq <- data.frame(word = names(ham_v),freq=ham_v)
-
 ```
 
 ***
@@ -145,5 +159,75 @@ suppressWarnings(wordcloud(spam_freq$word, spam_freq$freq, min.freq=550))
 
 # ham word cloud
 suppressWarnings(wordcloud(ham_freq$word, ham_freq$freq, min.freq=850, scale=c(3.5,0.15)))
+```
+
+
+
+```{r}
+analysis <- spam_hamCorpus %>% 
+  meta(tag = "email_group") %>% 
+  unlist() %>% 
+  table()
+
+kable(analysis)
+```
+
+```{r}
+spam_hamDTM_sparse <- removeSparseTerms(spam_hamDTM, 1-(10/length(spam_hamCorpus)))
+spam_hamDTM_sparse
+
+```
+
+```{r}
+
+# inspect(spam_hamDTM_sparse[1:10, 1:20])
+
+sample_size <- floor(0.70 * nrow(full_email_df))
+train_index <- sample(seq_len(nrow(full_email_df)), size = sample_size)
+
+training_df <- full_email_df[train_index, ]
+testing_df <- full_email_df[-train_index, ]
+
+table(training_df$email_group)
+table(testing_df$email_group)
+
+training_corp <- Corpus(VectorSource(training_df$email_text))
+
+training_corp <- tm_map(training_corp, removeNumbers)
+training_corp <- tm_map(training_corp, removePunctuation)
+training_corp <- tm_map(training_corp, stripWhitespace)
+training_corp <- tm_map(training_corp, removeWords, stopwords())
+training_corp <- tm_map(spamCorpus, content_transformer(tolower))
+
+
+testing_corp <- Corpus(VectorSource(testing_df$email_text))
+
+testing_corp <- tm_map(testing_corp, removeNumbers)
+testing_corp <- tm_map(testing_corp, removePunctuation)
+testing_corp <- tm_map(testing_corp, stripWhitespace)
+testing_corp <- tm_map(testing_corp, removeWords, stopwords())
+testing_corp <- tm_map(testing_corp, content_transformer(tolower))
+
+training_dtm <- DocumentTermMatrix(training_corp)
+testing_dtm <- DocumentTermMatrix(testing_corp)
+
+# count function
+counter <- function(x) {
+  y <- ifelse(x > 0, 1,0)
+  y <- factor(y, levels=c(0,1), labels=c("No", "Yes"))
+  y
+}
+
+train_sms <- apply(training_dtm, 2, counter)
+test_sms <- apply(testing_dtm, 2, counter)
+
+# container <- create_container(model_ready_corpus,
+#                               labels = email_group,
+#                               trainSize = 1:2764,
+#                               testSize = 2765:length(model_ready_corpus),
+#                               virgin = F)
+```
+```{r}
+
 ```
 
