@@ -21,6 +21,7 @@ library(NLP)
 library(kableExtra)
 library(corpus)
 library(caret)
+library(randomForest)
 ```
 
 ***
@@ -211,23 +212,52 @@ testing_corp <- tm_map(testing_corp, content_transformer(tolower))
 training_dtm <- DocumentTermMatrix(training_corp)
 testing_dtm <- DocumentTermMatrix(testing_corp)
 
+training_dtm <- removeSparseTerms(training_dtm, 1-(10/length(training_corp)))
+testing_dtm <- removeSparseTerms(testing_dtm, 1-(10/length(testing_corp)))
+
 # count function
 counter <- function(x) {
   y <- ifelse(x > 0, 1,0)
-  y <- factor(y, levels=c(0,1), labels=c("No", "Yes"))
+  y <- factor(y, levels=c(0,1))
   y
 }
 
 train_sms <- apply(training_dtm, 2, counter)
 test_sms <- apply(testing_dtm, 2, counter)
 
-# container <- create_container(model_ready_corpus,
-#                               labels = email_group,
-#                               trainSize = 1:2764,
-#                               testSize = 2765:length(model_ready_corpus),
-#                               virgin = F)
-```
-```{r}
+train_sms[1:10, 20:40]
 
 ```
+
+
+```{r}
+hamspam_randomforest10 = train(x = as.matrix(spam_hamDTM_sparse),
+                             y = factor(full_email_df$email_group),
+                             method = "rf",
+                             ntree = 1,
+                             trControl = trainControl(method = "boot", number = 1),
+                             do.trace = TRUE)
+
+
+## from medium
+sample = sample.split(data$num, SplitRatio = .75)
+train = subset(data, sample == TRUE)
+test  = subset(data, sample == FALSE)
+dim(train)
+dim(test)
+
+rf <- randomForest(
+  num ~ .,
+  data=train
+)
+
+pred = predict(rf, newdata=test[-14])
+prediction <- predict(hamspam_randomforest10, newdata = spam_hamDTM)
+
+cm = table(test[,14], pred)
+
+
+
+```
+
 
