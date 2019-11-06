@@ -231,16 +231,16 @@ train_sms[1:10, 20:40]
 
 
 ```{r}
-hamspam_randomforest10 = train(x = as.matrix(spam_hamDTM_sparse),
-                             y = factor(full_email_df$email_group),
-                             method = "rf",
-                             ntree = 1,
-                             trControl = trainControl(method = "boot", number = 1),
-                             do.trace = TRUE)
+# hamspam_randomforest10 = train(x = as.matrix(spam_hamDTM_sparse),
+#                              y = factor(full_email_df$email_group),
+#                              method = "rf",
+#                              ntree = 1,
+#                              trControl = trainControl(method = "boot", number = 1),
+#                              do.trace = TRUE)
 
 
 ## from medium
-sample = sample.split(data$num, SplitRatio = .75)
+sample = sample.split(full_email_df$email_text, SplitRatio = .70)
 train = subset(data, sample == TRUE)
 test  = subset(data, sample == FALSE)
 dim(train)

@@ -1,0 +1,60 @@
+---
+title: "Recommender System - Goodreads"
+author: "Zach Alexander"
+date: "November 6, 2019"
+output: html_document
+---
+
+## Discussion #11: Recommender Systems
+
+***
+
+### Introduction
+
+[Goodreads.com](https://www.goodreads.com/recommendations) is a social media platform that allows users to recommend and rate books. It's a great resource to find new books, to see what your friends may be reading or have read, and which books may be more popular than others. The website has been deemed the "Netflix for books", as an all-in-one platform to discover new and enticing books to read, as well as giving the user the capability of storing a virtual bookshelf of books that you have read in the past, or those that you put on the part of the shelf that you'd like "to-read". They also have a section called "Recommendations", where it "learns about your personal tastes from your ratings, then generates recommendations unique to you". As it indicates on their platform, you need to rate at least 20 books to start getting Goodreads Recommendations.
+
+
+***
+
+### Scenario Design
+
++ **Who are the target users?**
+
+The target users are members that have subscribed or created a membership to goodreads.com.
+
++ **What are the key goals?**
+
+The key goals of the site are to provide insight into new books that will be of interest to the user, and to be able to share and be exposed to books that friends and connections are currently reading or have read.
+
++ **How can you help them accomplish the goals?**
+
+To accomplish this goal, users should rate the books that they've read in the past, as well as share books of interest with their social media circles or other members of goodreads.com. The main goal of the recommender system is to have as many people as possible rating books, so that the site can dictate which books are most popular, and the types of books that would be of interest to users.
+
++ **Does it make sense to perform scenario design twice?**
+
+I think that it does make sense to do this, especially since the site has many different audiences. There are some parts of the site that tailor functionality towards authors of books. For instance, there is an "Ask the Author" section that allows feedback and discussions with authors. This may be a completely different scenario design than for members of the platform, who might be more engaged in book content and recommendations, while authors may be focused more on obtaining *good* reviews, and aspects of marketing of their content.
+
+
+***
+
+### Reverse Engineer
+
+As noted in a [few articles](https://readwrite.com/2011/09/14/goodreads_book_recommendation_engine_launched/), goodreads boasts that it uses more than 20 billion data points to recommend books to their users in their recommender engine. when clicking through the website, we can see that it can obtain data via it's online bookshelves, new releases sections, myriad other community-based portions of the site -- including the "Groups", "Discussions", "Ask the Author", "Quizzes", and "Trivia". All of this data can be helpful in creating an effective recommender system for books, based on responses that are tagged directly to the user from the quizzes and trivia questions, or through sentiment analysis and other NLP methods in the groups and discussions.
+
++ **Collaborative Filtering and Content-Based Filtering**
+
+It appears that the engine may use a hybrid of both collaborative and content-based filtering methods. Collaborative filtering uses group knowledge to form recommendations based on like users. As mentioned earlier, in order for a user to receive recommendations from the engine, you'll have to rate at least 20 books in order for the "group knowledge" tactic to start working. Additionally, content-based filtering may also be part of the engine since seems to incorporate book attributes and user attributes. As mentioned in this [article](https://pdfs.semanticscholar.org/c59a/010c17ddaf28e1f5d2bc5c22166443311115.pdf), it looks like there was strong association between book to book, user to user, and book to user relationships.
+
+
++ **Clustering algorithm**
+
+Once the recommender engine takes into account data collection and filtering based on collaborative and content-based filtering methods, there also seems to be aspects of clustering, where there is distance calculations and associations that link co-read books together. These are then mapped out as a sort of network analysis that can lead to higher frequency co-read books (and those that are more popular from collaborative/content-based filtering) to be weighted higher in the recommender system.
+
+***
+
+### Conclusion and Recommendations
+
+Although the Goodreads recommender system is [ranked highly](https://bookriot.com/2015/09/15/11-ways-to-love-goodreads-even-more-2/) amongst users, some articles discussed whether or not its integration with Amazon will lead to outsized effects on the recommendation engine. The website was acquired by Amazon in 2013, and although there is some collaboration between the two sites (i.e. linking your accounts together so that your Goodreads recommendations would populate into your amazon account), it would be interesting to see if the recommender system would integrate consumer-behavior into it's recommendations. For instance, would there be an altering of the recommendations list in Goodreads if consumers started to rapidly purchase a certain book? How would this be weighted? It could allow for a more integrated experience, and to show a more rounded representation of "popular books", based not just on the collaborative filtering and content-based filtering methods, but also based on rates of purchases.
+
+Additionally, I'm sure there is a good reason for the 20-book threshold in terms of being able to build a recommendation list for a specific user, but for users such as children or less avid readers, it may be difficult to meet this threshold for a certain amount of time before they can see their own unique recommendations. Finding ways to lower this threshold may be beneficial.
+
