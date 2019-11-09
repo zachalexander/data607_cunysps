@@ -82,6 +82,13 @@ spam_df <- spam_df %>%
 #### Combining the two dataframes into one
 ```{r}
 full_email_df <- rbind(ham_df, spam_df)
+full_email_df$email_group <- factor(full_email_df$email_group)
+
+set.seed(3453)
+
+full_email_df <- full_email_df[sample(nrow(full_email_df)),]
+spam_idx_v <- which(full_email_df$email_group == "spam")
+ham_idx_v <- which(full_email_df$email_group == "ham")
 ```
 
 ***
@@ -98,166 +105,108 @@ rm(email_list1, email_list, i, email_text, email_text1, ham_emails_list, spam_em
 
 #### Creating a corpus and cleaning the corpus
 ```{r, warning=FALSE, message=FALSE}
-spamCorpus <- VCorpus(DirSource(directory = 'spam_2'))
-hamCorpus <- VCorpus(DirSource(directory = 'easy_ham'))
+full_email_corpus <- Corpus(VectorSource(full_email_df$email_text))
 
-addFilter <- function(corpus, group, value){
-  for(i in 1:length(corpus)){
-    as_corpus_text(iconv(content(corpus[[i]]), "Latin1", "UTF-8", sub = ""))
-    meta(corpus[[i]], type = "local", tag = group) <- value
-  }
-  return(corpus)
-}
-
-spamCorpus <- spamCorpus %>% 
-  addFilter(group = "email_group", value = "spam")
-
-hamCorpus <- hamCorpus %>% 
-  addFilter(group = "email_group", value = "ham")
-
-
-spamCorpus <- tm_map(spamCorpus, removeNumbers)
-spamCorpus <- tm_map(spamCorpus, removePunctuation)
-spamCorpus <- tm_map(spamCorpus, stripWhitespace)
-spamCorpus <- tm_map(spamCorpus, removeWords, stopwords())
-spamCorpus <- tm_map(spamCorpus, content_transformer(tolower))
-
-hamCorpus <- tm_map(hamCorpus, removeNumbers)
-hamCorpus <- tm_map(hamCorpus, removePunctuation)
-hamCorpus <- tm_map(hamCorpus, stripWhitespace)
-hamCorpus <- tm_map(hamCorpus, removeWords, stopwords())
-hamCorpus <- tm_map(hamCorpus, content_transformer(tolower))
-
-spam_hamCorpus <- c(spamCorpus, hamCorpus)
+full_email_corpus_cleaned <- full_email_corpus %>%
+    tm_map(stripWhitespace) %>%
+    tm_map(content_transformer(tolower)) %>%
+    tm_map(removePunctuation) %>%
+    tm_map(removeWords, stopwords()) %>% 
+    tm_map(removeNumbers)
 ```
 
 ***
 #### Creating term document matrix
 ```{r}
-spamDTM <- TermDocumentMatrix(spamCorpus)
-hamDTM <- TermDocumentMatrix(hamCorpus)
-spam_hamDTM <- DocumentTermMatrix(spam_hamCorpus)
-spam_hamDTM
-```
-
-***
-#### Finding the most frequent terms in the corpus
-```{r}
-spamDTM_matrix <- as.matrix(spamDTM)
-spam_v <- sort(rowSums(spamDTM_matrix),decreasing=TRUE)
-spam_freq <- data.frame(word = names(spam_v),freq=spam_v)
-
-hamDTM_matrix <- as.matrix(hamDTM)
-ham_v <- sort(rowSums(hamDTM_matrix),decreasing=TRUE)
-ham_freq <- data.frame(word = names(ham_v),freq=ham_v)
+full_email_dtm <- DocumentTermMatrix(full_email_corpus_cleaned)
 ```
 
 ***
 #### Generate word clouds
 ```{r}
 # spam word cloud
-suppressWarnings(wordcloud(spam_freq$word, spam_freq$freq, min.freq=550))
+suppressWarnings(wordcloud(full_email_corpus_cleaned[spam_idx_v], min.freq=550))
 
 # ham word cloud
-suppressWarnings(wordcloud(ham_freq$word, ham_freq$freq, min.freq=850, scale=c(3.5,0.15)))
+suppressWarnings(wordcloud(full_email_corpus_cleaned[ham_idx_v], min.freq=550))
 ```
 
+***
 
+#### Looking at sparse terms
+```{r}
+# remove terms that do not comprise of at least 75 percent of documents
+full_emaildtm_sparse <- removeSparseTerms(full_email_dtm, 0.75)
+full_emaildtm_sparse
+```
+***
+
+#### Preparing the data for random forest
+```{r}
+# split the randomized data frame into a 70/30 split
+train_index <- createDataPartition(full_email_df$email_group, p = 0.70, list = FALSE)
+
+# 70 percent goes to the model_train
+model_train <- full_email_df[train_index,]
+
+# 30 percent goes to the model_test
+model_test <- full_email_df[-train_index,]
+
+# create document term matrices
+model_dtm_train <- full_email_dtm[train_index,]
+model_dtm_test <- full_email_dtm[-train_index,]
+
+# create corpuses
+model_corpus_train<- full_email_corpus_cleaned[train_index]
+model_corpus_test<- full_email_corpus_cleaned[-train_index]
+
+# make a data frame from the document term matrices for random forest and add a column with the factor
+training_set <- as.data.frame(as.matrix(model_dtm_train))
+training_set$email_group <- model_train$email_group
+
+test_set <- as.data.frame(as.matrix(model_dtm_test))
+test_set$email_group <- model_test$email_group
+```
+
+***
+
+#### Our data is ready for random forest (full dataset)
+```{r}
+# create the classifier and run random forest
+random_forest_classifier <- randomForest(x = training_set[-97788], y = training_set$email_group, ntree = 10)
+
+# use the classifier to predict spam/ham on the test dataset
+prediction <- predict(random_forest_classifier, newdata = test_set[-97788])
+
+# look at the results
+confusion_matrix <- table(test_set[, 97788], prediction)
+confusion_matrix
+```
+
+***
+
+#### Using sparse dataset with random forest (cut down on processing time)
 
 ```{r}
-analysis <- spam_hamCorpus %>% 
-  meta(tag = "email_group") %>% 
-  unlist() %>% 
-  table()
+# create document term matrices
+model_sparsedtm_train <- full_emaildtm_sparse[train_index,]
+model_sparsedtm_test <- full_emaildtm_sparse[-train_index,]
 
-kable(analysis)
+
+# make a data frame from the document term matrices for random forest and add a column with the factor
+training_sparse_set <- as.data.frame(as.matrix(model_sparsedtm_train))
+training_sparse_set$email_group <- model_train$email_group
+
+test_sparse_set <- as.data.frame(as.matrix(model_sparsedtm_test))
+test_sparse_set$email_group <- model_test$email_group
+
+# create the classifier and run random forest
+random_forest_sparse_classifier <- randomForest(x = training_sparse_set[-68], y = training_sparse_set$email_group, ntree = 10)
+
+# use the classifier to predict spam/ham on the test dataset
+prediction_sparse <- predict(random_forest_sparse_classifier, newdata = test_sparse_set[-68])
+
+# look at the results
+confusion_matrix_sparse <- table(test_sparse_set[, 68], prediction_sparse)
+confusion_matrix_sparse
 ```
-
-```{r}
-spam_hamDTM_sparse <- removeSparseTerms(spam_hamDTM, 1-(10/length(spam_hamCorpus)))
-spam_hamDTM_sparse
-
-```
-
-```{r}
-
-# inspect(spam_hamDTM_sparse[1:10, 1:20])
-
-sample_size <- floor(0.70 * nrow(full_email_df))
-train_index <- sample(seq_len(nrow(full_email_df)), size = sample_size)
-
-training_df <- full_email_df[train_index, ]
-testing_df <- full_email_df[-train_index, ]
-
-table(training_df$email_group)
-table(testing_df$email_group)
-
-training_corp <- Corpus(VectorSource(training_df$email_text))
-
-training_corp <- tm_map(training_corp, removeNumbers)
-training_corp <- tm_map(training_corp, removePunctuation)
-training_corp <- tm_map(training_corp, stripWhitespace)
-training_corp <- tm_map(training_corp, removeWords, stopwords())
-training_corp <- tm_map(spamCorpus, content_transformer(tolower))
-
-
-testing_corp <- Corpus(VectorSource(testing_df$email_text))
-
-testing_corp <- tm_map(testing_corp, removeNumbers)
-testing_corp <- tm_map(testing_corp, removePunctuation)
-testing_corp <- tm_map(testing_corp, stripWhitespace)
-testing_corp <- tm_map(testing_corp, removeWords, stopwords())
-testing_corp <- tm_map(testing_corp, content_transformer(tolower))
-
-training_dtm <- DocumentTermMatrix(training_corp)
-testing_dtm <- DocumentTermMatrix(testing_corp)
-
-training_dtm <- removeSparseTerms(training_dtm, 1-(10/length(training_corp)))
-testing_dtm <- removeSparseTerms(testing_dtm, 1-(10/length(testing_corp)))
-
-# count function
-counter <- function(x) {
-  y <- ifelse(x > 0, 1,0)
-  y <- factor(y, levels=c(0,1))
-  y
-}
-
-train_sms <- apply(training_dtm, 2, counter)
-test_sms <- apply(testing_dtm, 2, counter)
-
-train_sms[1:10, 20:40]
-
-```
-
-
-```{r}
-# hamspam_randomforest10 = train(x = as.matrix(spam_hamDTM_sparse),
-#                              y = factor(full_email_df$email_group),
-#                              method = "rf",
-#                              ntree = 1,
-#                              trControl = trainControl(method = "boot", number = 1),
-#                              do.trace = TRUE)
-
-
-## from medium
-sample = sample.split(full_email_df$email_text, SplitRatio = .70)
-train = subset(data, sample == TRUE)
-test  = subset(data, sample == FALSE)
-dim(train)
-dim(test)
-
-rf <- randomForest(
-  num ~ .,
-  data=train
-)
-
-pred = predict(rf, newdata=test[-14])
-prediction <- predict(hamspam_randomforest10, newdata = spam_hamDTM)
-
-cm = table(test[,14], pred)
-
-
-
-```
-
-
