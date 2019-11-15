@@ -1,0 +1,144 @@
+"","X.MMSA","MMSANAME","n"
+"1",10580,"Albany-Schenectady-Troy, NY, Metropolitan Statistical Area",2901
+"2",10740,"Albuquerque, NM, Metropolitan Statistical Area",1300
+"3",10900,"Allentown-Bethlehem-Easton, PA-NJ, Metropolitan Statistical Area",675
+"4",11260,"Anchorage, AK, Metropolitan Statistical Area",1028
+"5",12060,"Atlanta-Sandy Springs-Roswell, GA, Metropolitan Statistical Area",2444
+"6",12260,"Augusta-Richmond County, GA-SC, Metropolitan Statistical Area",849
+"7",12420,"Austin-Round Rock, TX, Metropolitan Statistical Area",1567
+"8",12580,"Baltimore-Columbia-Towson, MD, Metropolitan Statistical Area",6718
+"9",12940,"Baton Rouge, LA, Metropolitan Statistical Area",623
+"10",13220,"Beckley, WV, Metropolitan Statistical Area",543
+"11",13620,"Berlin, NH-VT, Micropolitan Statistical Area",527
+"12",13740,"Billings, MT, Metropolitan Statistical Area",578
+"13",13780,"Binghamton, NY, Metropolitan Statistical Area",909
+"14",13820,"Birmingham-Hoover, AL, Metropolitan Statistical Area",1219
+"15",13900,"Bismarck, ND, Metropolitan Statistical Area",1049
+"16",14260,"Boise City, ID, Metropolitan Statistical Area",1361
+"17",14454,"Boston, MA, Metropolitan Division",2369
+"18",15380,"Buffalo-Cheektowaga-Niagara Falls, NY, Metropolitan Statistical Area",1227
+"19",15540,"Burlington-South Burlington, VT, Metropolitan Statistical Area",1555
+"20",15764,"Cambridge-Newton-Framingham, MA, Metropolitan Division",2813
+"21",15804,"Camden, NJ, Metropolitan Division",1141
+"22",16300,"Cedar Rapids, IA, Metropolitan Statistical Area",515
+"23",16620,"Charleston, WV, Metropolitan Statistical Area",940
+"24",16700,"Charleston-North Charleston, SC, Metropolitan Statistical Area",1407
+"25",16740,"Charlotte-Concord-Gastonia, NC-SC, Metropolitan Statistical Area",1819
+"26",16860,"Chattanooga, TN-GA, Metropolitan Statistical Area",532
+"27",16980,"Chicago-Naperville-Elgin, IL-IN-WI, Metropolitan Statistical Area",4209
+"28",17140,"Cincinnati, OH-KY-IN, Metropolitan Statistical Area",1766
+"29",17200,"Claremont-Lebanon, NH-VT, Micropolitan Statistical Area",1806
+"30",17460,"Cleveland-Elyria, OH, Metropolitan Statistical Area",1036
+"31",17780,"College Station-Bryan, TX, Metropolitan Statistical Area",527
+"32",17820,"Colorado Springs, CO, Metropolitan Statistical Area",1614
+"33",17900,"Columbia, SC, Metropolitan Statistical Area",1259
+"34",18140,"Columbus, OH, Metropolitan Statistical Area",1915
+"35",18580,"Corpus Christi, TX, Metropolitan Statistical Area",539
+"36",18880,"Crestview-Fort Walton Beach-Destin, FL, Metropolitan Statistical Area",1063
+"37",19060,"Cumberland, MD-WV, Metropolitan Statistical Area",517
+"38",19124,"Dallas-Plano-Irving, TX, Metropolitan Division",1433
+"39",19380,"Dayton, OH, Metropolitan Statistical Area",592
+"40",19660,"Deltona-Daytona Beach-Ormond Beach, FL, Metropolitan Statistical Area",1192
+"41",19740,"Denver-Aurora-Lakewood, CO, Metropolitan Statistical Area",6600
+"42",19780,"Des Moines-West Des Moines, IA, Metropolitan Statistical Area",1302
+"43",20260,"Duluth, MN-WI, Metropolitan Statistical Area",941
+"44",20524,"Dutchess County-Putnam County, NY, Metropolitan Division",1092
+"45",21340,"El Paso, TX, Metropolitan Statistical Area",541
+"46",22020,"Fargo, ND-MN, Metropolitan Statistical Area",1221
+"47",22220,"Fayetteville-Springdale-Rogers, AR-MO, Metropolitan Statistical Area",795
+"48",23060,"Fort Wayne, IN, Metropolitan Statistical Area",651
+"49",23104,"Fort Worth-Arlington, TX, Metropolitan Division",528
+"50",23540,"Gainesville, FL, Metropolitan Statistical Area",892
+"51",24020,"Glens Falls, NY, Metropolitan Statistical Area",1132
+"52",24220,"Grand Forks, ND-MN, Metropolitan Statistical Area",549
+"53",24260,"Grand Island, NE, Metropolitan Statistical Area",731
+"54",24340,"Grand Rapids-Wyoming, MI, Metropolitan Statistical Area",1037
+"55",24860,"Greenville-Anderson-Mauldin, SC, Metropolitan Statistical Area",1456
+"56",25180,"Hagerstown-Martinsburg, MD-WV, Metropolitan Statistical Area",1141
+"57",25540,"Hartford-West Hartford-East Hartford, CT, Metropolitan Statistical Area",3757
+"58",25940,"Hilton Head Island-Bluffton-Beaufort, SC, Metropolitan Statistical Area",668
+"59",26420,"Houston-The Woodlands-Sugar Land, TX, Metropolitan Statistical Area",1843
+"60",26580,"Huntington-Ashland, WV-KY-OH, Metropolitan Statistical Area",1334
+"61",26900,"Indianapolis-Carmel-Anderson, IN, Metropolitan Statistical Area",3331
+"62",27140,"Jackson, MS, Metropolitan Statistical Area",596
+"63",27260,"Jacksonville, FL, Metropolitan Statistical Area",3015
+"64",28140,"Kansas City, MO-KS, Metropolitan Statistical Area",4398
+"65",28700,"Kingsport-Bristol-Bristol, TN-VA, Metropolitan Statistical Area",586
+"66",28940,"Knoxville, TN, Metropolitan Statistical Area",695
+"67",29620,"Lansing-East Lansing, MI, Metropolitan Statistical Area",618
+"68",30700,"Lincoln, NE, Metropolitan Statistical Area",1567
+"69",30780,"Little Rock-North Little Rock-Conway, AR, Metropolitan Statistical Area",1182
+"70",30860,"Logan, UT-ID, Metropolitan Statistical Area",569
+"71",31080,"Los Angeles-Long Beach-Anaheim, CA, Metropolitan Statistical Area",3512
+"72",31140,"Louisville/Jefferson County, KY-IN, Metropolitan Statistical Area",3668
+"73",32820,"Memphis, TN-MS-AR, Metropolitan Statistical Area",925
+"74",33100,"Miami-Fort Lauderdale-West Palm Beach, FL, Metropolitan Statistical Area",2312
+"75",33340,"Milwaukee-Waukesha-West Allis, WI, Metropolitan Statistical Area",1271
+"76",33460,"Minneapolis-St. Paul-Bloomington, MN-WI, Metropolitan Statistical Area",8557
+"77",33500,"Minot, ND, Micropolitan Statistical Area",635
+"78",33874,"Montgomery County-Bucks County-Chester County, PA, Metropolitan Division",598
+"79",34820,"Myrtle Beach-Conway-North Myrtle Beach, SC-NC, Metropolitan Statistical Area",913
+"80",34980,"Nashville-Davidson--Murfreesboro--Franklin, TN, Metropolitan Statistical Area",997
+"81",35004,"Nassau County-Suffolk County, NY, Metropolitan Division",1188
+"82",35084,"Newark, NJ-PA, Metropolitan Division",2498
+"83",35380,"New Orleans-Metairie, LA, Metropolitan Statistical Area",1433
+"84",35614,"New York-Jersey City-White Plains, NY-NJ, Metropolitan Division",8338
+"85",35740,"Norfolk, NE, Micropolitan Statistical Area",665
+"86",35820,"North Platte, NE, Micropolitan Statistical Area",524
+"87",35840,"North Port-Sarasota-Bradenton, FL, Metropolitan Statistical Area",1144
+"88",36084,"Oakland-Hayward-Berkeley, CA, Metropolitan Division",809
+"89",36260,"Ogden-Clearfield, UT, Metropolitan Statistical Area",2431
+"90",36420,"Oklahoma City, OK, Metropolitan Statistical Area",1964
+"91",36540,"Omaha-Council Bluffs, NE-IA, Metropolitan Statistical Area",3234
+"92",36740,"Orlando-Kissimmee-Sanford, FL, Metropolitan Statistical Area",2688
+"93",37460,"Panama City, FL, Metropolitan Statistical Area",1098
+"94",37860,"Pensacola-Ferry Pass-Brent, FL, Metropolitan Statistical Area",1105
+"95",37964,"Philadelphia, PA, Metropolitan Division",920
+"96",38060,"Phoenix-Mesa-Scottsdale, AZ, Metropolitan Statistical Area",5352
+"97",38300,"Pittsburgh, PA, Metropolitan Statistical Area",1559
+"98",38860,"Portland-South Portland, ME, Metropolitan Statistical Area",2740
+"99",38900,"Portland-Vancouver-Hillsboro, OR-WA, Metropolitan Statistical Area",3244
+"100",38940,"Port St. Lucie, FL, Metropolitan Statistical Area",993
+"101",39300,"Providence-Warwick, RI-MA, Metropolitan Statistical Area",6240
+"102",39340,"Provo-Orem, UT, Metropolitan Statistical Area",1503
+"103",39580,"Raleigh, NC, Metropolitan Statistical Area",618
+"104",39660,"Rapid City, SD, Metropolitan Statistical Area",956
+"105",39900,"Reno, NV, Metropolitan Statistical Area",1389
+"106",40060,"Richmond, VA, Metropolitan Statistical Area",1417
+"107",40140,"Riverside-San Bernardino-Ontario, CA, Metropolitan Statistical Area",1119
+"108",40340,"Rochester, MN, Metropolitan Statistical Area",651
+"109",40380,"Rochester, NY, Metropolitan Statistical Area",2986
+"110",40484,"Rockingham County-Strafford County, NH, Metropolitan Division",1575
+"111",40900,"Sacramento--Roseville--Arden-Arcade, CA, Metropolitan Statistical Area",824
+"112",41060,"St. Cloud, MN, Metropolitan Statistical Area",656
+"113",41180,"St. Louis, MO-IL, Metropolitan Statistical Area",2226
+"114",41420,"Salem, OR, Metropolitan Statistical Area",551
+"115",41540,"Salisbury, MD-DE, Metropolitan Statistical Area",2419
+"116",41620,"Salt Lake City, UT, Metropolitan Statistical Area",3039
+"117",41700,"San Antonio-New Braunfels, TX, Metropolitan Statistical Area",558
+"118",41884,"San Francisco-Redwood City-South San Francisco, CA, Metropolitan Division",510
+"119",41940,"San Jose-Sunnyvale-Santa Clara, CA, Metropolitan Statistical Area",529
+"120",41980,"San Juan-Carolina-Caguas, PR, Metropolitan Statistical Area",3738
+"121",42420,"Scottsbluff, NE, Micropolitan Statistical Area",593
+"122",42644,"Seattle-Bellevue-Everett, WA, Metropolitan Division",5121
+"123",43524,"Silver Spring-Frederick-Rockville, MD, Metropolitan Division",3306
+"124",43580,"Sioux City, IA-NE-SD, Metropolitan Statistical Area",905
+"125",43620,"Sioux Falls, SD, Metropolitan Statistical Area",1073
+"126",43900,"Spartanburg, SC, Metropolitan Statistical Area",527
+"127",44060,"Spokane-Spokane Valley, WA, Metropolitan Statistical Area",1331
+"128",44140,"Springfield, MA, Metropolitan Statistical Area",814
+"129",45060,"Syracuse, NY, Metropolitan Statistical Area",1684
+"130",45220,"Tallahassee, FL, Metropolitan Statistical Area",2096
+"131",45300,"Tampa-St. Petersburg-Clearwater, FL, Metropolitan Statistical Area",2557
+"132",45780,"Toledo, OH, Metropolitan Statistical Area",705
+"133",45820,"Topeka, KS, Metropolitan Statistical Area",1162
+"134",46140,"Tulsa, OK, Metropolitan Statistical Area",1624
+"135",46220,"Tuscaloosa, AL, Metropolitan Statistical Area",548
+"136",46540,"Utica-Rome, NY, Metropolitan Statistical Area",1008
+"137",47260,"Virginia Beach-Norfolk-Newport News, VA-NC, Metropolitan Statistical Area",1706
+"138",47664,"Warren-Troy-Farmington Hills, MI, Metropolitan Division",2459
+"139",47894,"Washington-Arlington-Alexandria, DC-VA-MD-WV, Metropolitan Division",9170
+"140",48620,"Wichita, KS, Metropolitan Statistical Area",2567
+"141",48660,"Wichita Falls, TX, Metropolitan Statistical Area",527
+"142",48864,"Wilmington, DE-MD-NJ, Metropolitan Division",2292
+"143",49340,"Worcester, MA-CT, Metropolitan Statistical Area",1572
