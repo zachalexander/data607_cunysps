@@ -4,6 +4,9 @@ author: "Zach Alexander"
 date: "11/17/2019"
 output: html_document
 ---
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 1200)
+```
 
 ### Final Project Overview and Motivation
 
@@ -29,12 +32,13 @@ library(tidyverse)
 library(dplyr)
 library(tidyr)
 library(plyr)
+library(knitr)
 library(kableExtra)
 
 election_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/election_data.csv')
 
 kable(head(election_data, n = 15L), align = rep('c', 5)) %>% 
-  kable_styling(bootstrap_options = c("striped"), full_width = F)
+  kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = TRUE)
 ```
 
 The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level_Election_Results_08-16
@@ -49,7 +53,7 @@ The second dataset that we’ll work with contains related to values, with a res
 avs <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/avs.csv')
 
 kable(head(avs, n = 15L), align = rep('c', 5)) %>% 
-  kable_styling(bootstrap_options = c("striped"), full_width = F)
+  kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = TRUE)
 ```
 
 
