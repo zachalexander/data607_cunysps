@@ -8,7 +8,7 @@ output: html_document
 ### Final Project Overview and Motivation
 
 As the presidential election cycle starts to ramp up again, we thought it would be interesting to take a look back at the election data from 2016 in order to think more about potential factors that could affect the outcome of next year's vote. 
-Labeled by Politico as the "biggest upset in U.S. history", a large narrative about a "divided" America continued to develop in the days following the 2016 presidential election. Many would argue that this narrative continues to dominate current news headlines and will be an influential factor in the way candidates run their campaigns over the next 12 months.
+Labeled by [Politico as the "biggest upset in U.S. history"](https://www.politico.com/story/2016/11/election-results-2016-clinton-trump-231070), a large narrative about a "divided" America continued to develop in the days following the 2016 presidential election. Many would argue that this narrative continues to dominate current news headlines and will be an influential factor in the way candidates run their campaigns over the next 12 months.
 
 For our project, we are curious about what factors seem to “divide” America. We’ll explore questions such as:
 
@@ -42,7 +42,7 @@ The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level
 
 ### Dataset 2
 
-The second dataset that we’ll work with contains related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the Public Religion Research Institute (PRRI) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
+The second dataset that we’ll work with contains related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
 
 ### Reading data files from Github
 ```{r, warning=FALSE, message=FALSE, echo=TRUE}
