@@ -1,7 +1,7 @@
 ---
 title: "DATA 607 - Final Project Proposal"
 author: "Zach Alexander"
-date: "11/14/2019"
+date: "11/17/2019"
 output: html_document
 ---
 
@@ -23,16 +23,17 @@ We’ll be utilizing two different datasets for this project.
 
 The first, contains the presidential election results by county for the 2016 election. 
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(dplyr)
 library(tidyr)
 library(plyr)
+library(kableExtra)
 
-election_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/ed_data.csv')
+election_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/election_data.csv')
 
-kable(election_data, align = rep('c', 5)) %>% 
+kable(head(election_data, n = 15L), align = rep('c', 5)) %>% 
   kable_styling(bootstrap_options = c("striped"), full_width = F)
 ```
 
@@ -43,14 +44,11 @@ The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level
 
 The second dataset that we’ll work with contains related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the Public Religion Research Institute (PRRI) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
 
-We’ll select a few values to explore, and see if
-
-
 ### Reading data files from Github
 ```{r, warning=FALSE, message=FALSE, echo=TRUE}
-avs <- read.spss('/Users/zdalexander/Desktop/PRRI-2017-American-Values-Survey.sav', to.data.frame = TRUE)
+avs <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/avs.csv')
 
-kable(avs, align = rep('c', 5)) %>% 
+kable(head(avs, n = 15L), align = rep('c', 5)) %>% 
   kable_styling(bootstrap_options = c("striped"), full_width = F)
 ```
 
