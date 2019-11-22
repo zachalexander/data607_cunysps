@@ -1,6 +1,6 @@
 ---
 title: "DATA 607 - Final Project Proposal"
-author: "Zach Alexander"
+author: "Zach Alexander and Misha Kollontai"
 date: "11/17/2019"
 output: html_document
 ---
@@ -20,7 +20,7 @@ For our project, we are curious about what factors seem to “divide” America.
 + Are there trends in values on a statewide level? And if so, do they favor one candidate over the other? 
 + Were certain values more predictive than others in favoring votes for a particular candidate?
 
-We’ll be utilizing two different datasets for this project. 
+We’ll be utilizing two different datasets for this project.
 
 ### Dataset 1
 
@@ -46,7 +46,7 @@ The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level
 
 ### Dataset 2
 
-The second dataset that we’ll work with contains related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
+The second dataset that we’ll work with contains data related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
 
 ### Reading data files from Github
 ```{r, warning=FALSE, message=FALSE, echo=TRUE}

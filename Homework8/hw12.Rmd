@@ -1,0 +1,47 @@
+---
+title: "DATA 607 - Week 12 - Homework"
+author: "Zach Alexander"
+date: "11/21/2019"
+output: html_document
+---
+
+#### Download FiveThirtyEight Dataset
+
++ First, I found a dataset on FiveThirtyEight.com and downloaded it into a .csv file  
+
+***
+
+#### Uploading .csv file into MySQL
+
++ Next, I uploaded the .csv file into MySQL, utilizing this script. 
+
+***
+
++ Once the file was correctly loaded into MySQL, into the 'averages' table, I was then able to read it into R by using the syntax below:  
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+library(RMySQL)
+mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='hw12', host='localhost', port = 3306)
+
+dbListTables(mydb)
+
+sql_data <- dbGetQuery(mydb, "SELECT * FROM averages")
+sql_data <- data.frame(sql_data)
+head(sql_data, n=20L)
+```
+
+***
+
+#### Migrating data to MongoDB
+
+```{r}
+library(mongolite)
+
+collection_add <- mongo(collection = "hw12data", db = "hw12")
+
+collection_add$insert(sql_data)
+
+collection_add$count()
+```
+
