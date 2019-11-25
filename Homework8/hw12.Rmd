@@ -5,6 +5,8 @@ date: "11/21/2019"
 output: html_document
 ---
 
+*** 
+
 #### Download FiveThirtyEight Dataset
 
 + First, I found a dataset on FiveThirtyEight.com and downloaded it into a .csv file  
@@ -13,35 +15,79 @@ output: html_document
 
 #### Uploading .csv file into MySQL
 
-+ Next, I uploaded the .csv file into MySQL, utilizing this script. 
++ Next, I uploaded the .csv file into MySQL, [utilizing this script](https://github.com/zachalexander/data607_cunysps/blob/master/Homework8/upload_data.sql). 
+
+![Read .csv file into MySQL](/Users/zdalexander/Desktop/grad_school/data_607_cunysps/data607_cunysps/Homework8/sql_script.png)
+
 
 ***
 
-+ Once the file was correctly loaded into MySQL, into the 'averages' table, I was then able to read it into R by using the syntax below:  
+#### Reading the MySQL data into R
 
-```{r setup}
-knitr::opts_chunk$set(echo = TRUE)
++ Once the file was correctly loaded into MySQL into the 'averages' table, I was then able to read it into R using the `RMySQL` package and the syntax below:  
+
+```{r, echo=FALSE}
+password <- 'Biology512'
+```
+
+
+```{r setup, message=FALSE, warning=FALSE}
 library(RMySQL)
-mydb = dbConnect(MySQL(), user='root', password='Biology512', dbname='hw12', host='localhost', port = 3306)
+library(knitr)
+library(kableExtra)
+
+# connecting to MySQL from R
+mydb = dbConnect(MySQL(), user='root', password=password, dbname='hw12', host='localhost', port = 3306)
 
 dbListTables(mydb)
 
 sql_data <- dbGetQuery(mydb, "SELECT * FROM averages")
 sql_data <- data.frame(sql_data)
-head(sql_data, n=20L)
+
+kable(head(sql_data, n = 20L), align = rep('c', 5)) %>% 
+  kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = TRUE)
 ```
 
 ***
 
 #### Migrating data to MongoDB
 
-```{r}
++ Now that I had my data in a Relational database, and could read it into R, I did some research to find a package in R that would be able to connect to a NoSQL database. I decided to use the `mongolite` package and MongoDB. I've used MongoDB in the past, and it seemed like a great option for this assignment.  
+
++ With my 'averages' data in a dataframe in R that was pulling directly from my SQL connection, I then created a collection in my new MongoDB instance and ran it locally. In order to connect and insert the data into my new collection using `mongolite` in R, I did the following:
+
+```{r, warning=FALSE, message=FALSE}
 library(mongolite)
 
+# created a new collection in MongoDB
 collection_add <- mongo(collection = "hw12data", db = "hw12")
-
-collection_add$insert(sql_data)
-
-collection_add$count()
 ```
 
+```{r, eval=FALSE}
+# inserted the data into the collection from R to MongoDB
+collection_add$insert(sql_data)
+```
+
++ After running this code, I was able to refresh the table in MongoDB, using the Studio 3T interface, and found the following:
+
+![JSON view of the data in MongoDB collection after successful migration](/Users/zdalexander/Desktop/grad_school/data_607_cunysps/data607_cunysps/Homework8/json_view.png)  
+
+![Table view of the data in MongoDB collection after successful migration](/Users/zdalexander/Desktop/grad_school/data_607_cunysps/data607_cunysps/Homework8/table_view.png) 
+
+***
+
+#### Testing the migration
+
++ A few quick tests to make sure the counts match between the MySQL dataset and my MongoDB collection:
+
+```{r}
+paste0('In my MySQL dataset there are ', length(sql_data$bioguide), ' observations.')
+```
+
+```{r}
+paste0('In my MongoDB database collection there are ', collection_add$count(), ' observations.')
+```
+
+It appears that there was a successful migration!
+
+***
