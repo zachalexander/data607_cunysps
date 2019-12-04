@@ -1,0 +1,387 @@
+---
+title: "DATA 607 - Final Project Proposal"
+author: "Zach Alexander and Misha Kollontai"
+date: "11/17/2019"
+output: html_document
+---
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 1200)
+```
+
+### Final Project Overview and Motivation
+
+As the presidential election cycle starts to ramp up again, we thought it would be interesting to take a look back at the election data from 2016 in order to think more about potential factors that could affect the outcome of next year's vote. 
+Labeled by [Politico as the "biggest upset in U.S. history"](https://www.politico.com/story/2016/11/election-results-2016-clinton-trump-231070), a large narrative about a "divided" America continued to develop in the days following the 2016 presidential election. Many would argue that this narrative continues to dominate current news headlines and will be an influential factor in the way candidates run their campaigns over the next 12 months.
+
+For our project, we are curious about what factors seem to “divide” America. We’ll explore questions such as:
+
++ Which values are more characteristic of voters that decided to vote for Donald Trump in 2016?
++ Which are more representative of voters that voted for Hilary Clinton in 2016?
++ Are there trends in values on a statewide level? And if so, do they favor one candidate over the other? 
++ Were certain values more predictive than others in favoring votes for a particular candidate?
+
+***
+
+#### Our Datasets
+
+We’ll be utilizing two different datasets for this project.
+
+##### Dataset 1: 2016 Presidential Election Data
+
+The first contains the 2016 presidential election results for every United States county, among other past election data. 
+
+```{r, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(plyr)
+library(knitr)
+library(kableExtra)
+election_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/election_data.csv')
+kable(election_data, align = rep('c', 5)) %>% 
+  kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = FALSE) %>% 
+  kableExtra::scroll_box(width = "100%", height = "500px")
+```
+
+The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level_Election_Results_08-16
+
+**Information about this dataset:** The 2016 election results were obtained from [Townhall.com](https://www.townhall.com) by utilizing a web-scraping package -- `beautifulsoup`. This Python package is referenced in the GitHub readme file of the user above. `Beautifulsoup` is an HTML parser that assists in scraping data from websites. In this case, the GitHub user located the published election results [here](https://townhall.com/election/2016/president/), and due to it's easy-to-scrape html table format, was able to obtain the results quite easily using this package. Websites like Townhall.com have designated data teams that help produce the real-time election results on the night of the election.
+
+##### Dataset 2: Public Religion Research Institute (PRRI)
+
+The second dataset that we’ll work with contains data related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
+
+**Information about this dataset:** This survey was completely designed and conducted by PRRI. Their website states that it is the "eighth annual multi-issue survey of it's kind".  
+
+*Survey Methodology*  
+
++ The survey was conducted between October 18th and October 30th, 2017.
++ Data collection was based on stratified, single-stage, random-digit-dialing (RDD) sampling of landline telephone households and randomly generated cell phone numbers.
++ In the end, they were able to survey 2,019 individuals (810 landline and 1,209 cell phone)
++ The sample represents responses from adults 18 years or older living in the United States.
+
+***
+
+#### Data Wrangling
+
+##### Reading data files from Github
+
+```{r, warning=FALSE, message=FALSE, echo=TRUE}
+library(haven)
+spss_file <- file.path('https://github.com/zachalexander/data607_cunysps/blob/master/FinalProject/PRRI-2017-American-Values-Survey.sav?raw=true')
+avs <- read_sav(spss_file)
+kable(avs, align = rep('c', 5)) %>% 
+  kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = FALSE) %>% 
+  kableExtra::scroll_box(width = "100%", height = "500px")
+```
+
+
+##### Subsetting the data
+
+To start we subset the election data and select columns that are relevant to the 2016 election, including the state column and the election totals for Republicans, Democrats, and Independents by county. Then, we create a `total` column that sums the total votes per county. Next, we use the group_by() and summarise_all() functions to group and sum the votes by state. Now, we have a dataframe with the summed votes per state, with each state only being one line. Finally, we add a percentage column to get the percent of voters that voted for Donald Trump broken down by each state.
+
+```{r}
+library(dplyr)
+Trump_sub<- election_data[,c(2,5,6,7)]
+Trump_sub$total16 <- Trump_sub$trump16 + Trump_sub$clinton16 + Trump_sub$otherpres16
+Trump_map <- Trump_sub %>% group_by(state) %>% summarise_all(sum)
+Trump_map$trump_per <- Trump_map$trump16/Trump_map$total16
+```
+
+For our next analyses and plots, we'll want to load in a few mapping packages, as well as the tidyverse package for more data wrangling.
+
+```{r plot trumps votes}
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rgeos)
+library(maps)
+library(RColorBrewer)
+```
+
+```{r}
+library(tools)
+world <- ne_countries(scale = "medium", returnclass = "sf")
+states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
+states$ID <- toTitleCase(states$ID)
+USA_votes <- Trump_map[which(Trump_map$state != "Alaska" & Trump_map$state != "Hawaii"),]
+states$trump_per <- USA_votes$trump_per
+```
+
+```{r plot_state_votes}
+ggplot(data = states) +
+  ggtitle("Percentage of Trump Votes Delta from 50%") +
+  geom_sf(aes(fill = (states$trump_per-0.5))) +
+  labs(fill = "Percentage") +
+  scale_fill_distiller(palette ="RdBu", limits = c(-0.5,0.5)) +
+  coord_sf(xlim = c(-125,-65), ylim = c(25,50), expand = FALSE) + 
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+```{r calculate_state_values}
+Temp_df_a<- avs[which(avs$q17a <5),c(4,90)]
+Temp_df_b<- avs[which(avs$q17b <5),c(4,92)]
+Temp_df_c<- avs[which(avs$q17c <5),c(4,91)]
+Temp_df_d<- avs[which(avs$q17d <5),c(4,93)]
+Temp_df_e<- avs[which(avs$q17e <5),c(4,94)]
+Temp_df_f<- avs[which(avs$q17f <5),c(4,95)]
+Temp_df_g<- avs[which(avs$q17g <5),c(4,96)]
+Temp_df_h<- avs[which(avs$q17h <5),c(4,97)]
+```
+
+```{r}
+state_q17a <- Temp_df_a %>% group_by(state) %>% summarise_all(mean)
+state_q17b <- Temp_df_b %>% group_by(state) %>% summarise_all(mean)
+state_q17c <- Temp_df_c %>% group_by(state) %>% summarise_all(mean)
+state_q17d <- Temp_df_d %>% group_by(state) %>% summarise_all(mean)
+state_q17e <- Temp_df_e %>% group_by(state) %>% summarise_all(mean)
+state_q17f <- Temp_df_f %>% group_by(state) %>% summarise_all(mean)
+state_q17g <- Temp_df_g %>% group_by(state) %>% summarise_all(mean)
+state_q17h <- Temp_df_h %>% group_by(state) %>% summarise_all(mean)
+```
+
+```{r}
+library(openintro)
+q17_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q17a, state_q17b, state_q17c, state_q17d, state_q17e, state_q17f, state_q17g, state_q17h))
+
+q17_df <- q17_df[which(q17_df$state != "HI" & q17_df$state != "AK"),]
+q17_df$state <- abbr2state(q17_df$state)
+names(q17_df) <- c("ID", "q17a", "q17b", "q17c", "q17d", "q17e", "q17f", "q17g", "q17h")
+
+states <- merge(states,q17_df,by="ID")
+```
+
+```{r generic state plot, echo = FALSE}
+state_map <- ggplot(data = states) + 
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+## Plots to Parts of Question 17:
+
+## Do you strongly favor, favor, oppose or strongly oppose the following? {.tabset .tabset-pills}
+
+
+### A
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Allowing gay and lesbian couples to marry legally") +
+  geom_sf(aes(fill = -(states$q17a-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### B
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Allow business owner to refuse products/services to gay/lesbian people") +
+  geom_sf(aes(fill = -(states$q17b-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### C
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Laws protecting LGBTQ in jobs, housing, etc.") +
+  geom_sf(aes(fill = -(states$q17c-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### D
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Build the Wall") +
+  geom_sf(aes(fill = -(states$q17d-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### E
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Muslim Ban") +
+  geom_sf(aes(fill = -(states$q17e-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### F
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("DACA through army or college") +
+  geom_sf(aes(fill = -(states$q17f-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### G
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Prevent refugees from entering USA") +
+  geom_sf(aes(fill = -(states$q17g-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### H
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Withdraw from Iran nuclear deal") +
+  geom_sf(aes(fill = -(states$q17h-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+```{r calculate_state_values2, echo = FALSE}
+Temp_df_a<- avs[which(avs$q17a < 5),c(4,104)]
+Temp_df_b<- avs[which(avs$q17b < 5),c(4,105)]
+Temp_df_c<- avs[which(avs$q17c < 5),c(4,106)]
+Temp_df_d<- avs[which(avs$q17d < 5),c(4,107)]
+Temp_df_e<- avs[which(avs$q17e < 5),c(4,108)]
+Temp_df_f<- avs[which(avs$q17f < 5),c(4,109)]
+Temp_df_g<- avs[which(avs$q17g < 5),c(4,110)]
+Temp_df <- avs[which(avs$q24 < 3),c(4,112)]
+Temp_df2 <- avs[which(avs$q25 < 3),c(4,114)]
+```
+
+```{r, echo = FALSE}
+state_q22a <- Temp_df_a %>% group_by(state) %>% summarise_all(mean)
+state_q22b <- Temp_df_b %>% group_by(state) %>% summarise_all(mean)
+state_q22c <- Temp_df_c %>% group_by(state) %>% summarise_all(mean)
+state_q22d <- Temp_df_d %>% group_by(state) %>% summarise_all(mean)
+state_q22e <- Temp_df_e %>% group_by(state) %>% summarise_all(mean)
+state_q22f <- Temp_df_f %>% group_by(state) %>% summarise_all(mean)
+state_q22g <- Temp_df_g %>% group_by(state) %>% summarise_all(mean)
+state_q24 <- Temp_df %>% group_by(state) %>% summarise_all(mean)
+state_q25 <- Temp_df2 %>% group_by(state) %>% summarise_all(mean)
+```
+
+## Question 22:
+
+```{r}
+library(openintro)
+q22_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q22a, state_q22b, state_q22c, state_q22d, state_q22e, state_q22f, state_q22g, state_q24, state_q25))
+
+q22_df <- q22_df[which(q22_df$state != "HI" & q22_df$state != "AK"),]
+q22_df$state <- abbr2state(q22_df$state)
+names(q22_df) <- c("ID", "q22a", "q22b", "q22c", "q22d", "q22e", "q22f", "q22g", "q24", "q25")
+
+states <- merge(states,q22_df,by="ID")
+```
+
+## Now as I read a few statements please tell me whether you completely agree, mostly agree, mostly disagree or completely disagree with each one? {.tabset .tabset-pills}
+
+### A
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("The severity of recent natural\ndisasters is evidence of climate change\n") +
+  geom_sf(aes(fill = -(states$q22a-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### B
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Because things have gotten so far off track in this country,\nwe need a leader who is willing to break some rules\nif that’s what it takes to set things right") +
+  geom_sf(aes(fill = -(states$q22b-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### C
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("In the past, America’s leaders have been too focused \n on helping other nations at the expense of our own country\n") +
+  geom_sf(aes(fill = -(states$q22c-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### D
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle(" It bothers me when I come in contact with\nimmigrants who speak little or no English\n") +
+  geom_sf(aes(fill = -(states$q22d-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### E
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("\nAmerica today sets a good moral example for the world\n") +
+  geom_sf(aes(fill = -(states$q22e-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### F
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Professional athletes should be required to stand\nduring the national anthem at sporting events\n") +
+  geom_sf(aes(fill = -(states$q22f-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+### G
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("The government should guarantee health insurance\nfor all citizens, even if it means raising taxes\n") +
+  geom_sf(aes(fill = -(states$q22g-2.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-1.5,1.5))
+```
+
+## Question 24: Do you think recent stories about women being sexually harassed and assaulted in the workplace are isolated incidents or are they part of a broader pattern of how women are often treated?
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  geom_sf(aes(fill = -(states$q24-1.5))) +
+  labs(fill = "Support") +
+  scale_fill_gradient2(limits = c(-0.5,0.5))
+```
+
+## Regressions
+
+```{r regression1}
+elec_regr1 <- lm(trump_per ~  q17c + q17d + q17h , data = states)
+summary(elec_regr1)
+```
+
+```{r regression2}
+elec_regr2 <- lm(trump_per ~  q17c + q17d + q22d + q24 , data = states)
+summary(elec_regr2)
+```
+```{r regression3}
+elec_regr3 <- lm(trump_per ~  q17a + q17b + q17c + q17d + q17e + q17f + q17g + q17h +q22a + q22b + q22c + q22d + q22e + q22f + q24 , data = states)
+summary(elec_regr3)
+```
+
+```{r regression4}
+elec_regr4 <- lm(trump_per ~  q17c + q17d + q17e + q17f + q17h + q24 + q25 , data = states)
+summary(elec_regr4)
+```
