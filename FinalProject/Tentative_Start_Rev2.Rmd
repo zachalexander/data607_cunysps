@@ -8,6 +8,8 @@ output: html_document
 options(width = 1200)
 ```
 
+*** 
+
 ### Final Project Overview and Motivation
 
 As the presidential election cycle starts to ramp up again, we thought it would be interesting to take a look back at the election data from 2016 in order to think more about potential factors that could affect the outcome of next year's vote. 
@@ -22,11 +24,13 @@ For our project, we are curious about what factors seem to “divide” America.
 
 ***
 
-#### Our Datasets
+### Our Datasets
 
 We’ll be utilizing two different datasets for this project.
 
-##### Dataset 1: 2016 Presidential Election Data
+***
+
+#### Dataset 1: 2016 Presidential Election Data
 
 The first contains the 2016 presidential election results for every United States county, among other past election data. 
 
@@ -38,17 +42,23 @@ library(tidyr)
 library(plyr)
 library(knitr)
 library(kableExtra)
+```
+
+```{r}
 election_data <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/election_data.csv')
-kable(election_data, align = rep('c', 5)) %>% 
+kable(head(election_data, n = 15L), align = rep('c', 5)) %>% 
   kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = FALSE) %>% 
   kableExtra::scroll_box(width = "100%", height = "500px")
 ```
+
 
 The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level_Election_Results_08-16
 
 **Information about this dataset:** The 2016 election results were obtained from [Townhall.com](https://www.townhall.com) by utilizing a web-scraping package -- `beautifulsoup`. This Python package is referenced in the GitHub readme file of the user above. `Beautifulsoup` is an HTML parser that assists in scraping data from websites. In this case, the GitHub user located the published election results [here](https://townhall.com/election/2016/president/), and due to it's easy-to-scrape html table format, was able to obtain the results quite easily using this package. Websites like Townhall.com have designated data teams that help produce the real-time election results on the night of the election.
 
-##### Dataset 2: Public Religion Research Institute (PRRI)
+***
+
+#### Dataset 2: Public Religion Research Institute (PRRI)
 
 The second dataset that we’ll work with contains data related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
 
@@ -63,23 +73,26 @@ The second dataset that we’ll work with contains data related to values, with 
 
 ***
 
-#### Data Wrangling
+### Data Wrangling
 
-##### Reading data files from Github
+***
+
+#### Reading data files from Github
 
 ```{r, warning=FALSE, message=FALSE, echo=TRUE}
 library(haven)
 spss_file <- file.path('https://github.com/zachalexander/data607_cunysps/blob/master/FinalProject/PRRI-2017-American-Values-Survey.sav?raw=true')
 avs <- read_sav(spss_file)
-kable(avs, align = rep('c', 5)) %>% 
+kable(head(avs, n = 15L), align = rep('c', 5)) %>% 
   kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = FALSE) %>% 
   kableExtra::scroll_box(width = "100%", height = "500px")
 ```
 
+*** 
 
-##### Subsetting the data
+#### Subsetting the data
 
-To start we subset the election data and select columns that are relevant to the 2016 election, including the state column and the election totals for Republicans, Democrats, and Independents by county. Then, we create a `total` column that sums the total votes per county. Next, we use the group_by() and summarise_all() functions to group and sum the votes by state. Now, we have a dataframe with the summed votes per state, with each state only being one line. Finally, we add a percentage column to get the percent of voters that voted for Donald Trump broken down by each state.
+To start we subset the election data and select columns that are relevant to the 2016 election, including the state column and the election totals for Republicans, Democrats, and Independents by county. Then, we create a `total` column that sums the total votes per county. Next, we use the group_by() and summarise_all() functions to group and sum the votes by state. Now, we have a data frame with the summed votes per state, with each state only being one line. Finally, we add a percentage column to get the percent of voters that voted for Donald Trump broken down by each state.
 
 ```{r}
 library(dplyr)
@@ -91,7 +104,7 @@ Trump_map$trump_per <- Trump_map$trump16/Trump_map$total16
 
 For our next analyses and plots, we'll want to load in a few mapping packages, as well as the tidyverse package for more data wrangling.
 
-```{r plot trumps votes}
+```{r plot trumps votes, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(sf)
 library(rnaturalearth)
@@ -101,6 +114,9 @@ library(maps)
 library(RColorBrewer)
 ```
 
+#### Misha - definitely edit this up if you'd like!
+In order to create our first map, we needed to use the `tools` package to help load in the necessary files that will allow us to create a map of the United States. We were able to load in the proper geometries to draw the state boundaries, as well as project the map to the correct coordinate plane. Then, we needed to subset our election data a bit more to remove the vote totals for Alaska and Hawaii, since there was a very low number of respondents to the American Values Survey from these states, we felt that any analyses and comparisons would not be representative of these locations.
+
 ```{r}
 library(tools)
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -108,42 +124,123 @@ states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
 states$ID <- toTitleCase(states$ID)
 USA_votes <- Trump_map[which(Trump_map$state != "Alaska" & Trump_map$state != "Hawaii"),]
 states$trump_per <- USA_votes$trump_per
+
+for(i in 1:length(states$trump_per)){
+  if(states$trump_per[i]-0.5>0.05){
+    states$color[i] <- "1 - Greater than 55% voted for Trump"
+  }
+  if(states$trump_per[i]-0.5< 0.05 & states$trump_per[i]- 0.5 >0){
+    states$color[i] <- "2 - Between 50% and 55% voted for Trump"
+  }
+  if(states$trump_per[i]-0.5> (-0.05) & states$trump_per[i]-0.5<0){
+    states$color[i] <- "3 - Between 45 and 50% voted for Trump"
+  }
+  if(states$trump_per[i]-0.5< (-0.05)){
+    states$color[i] <- "4 - Less than 45% voted for Trump"
+  }
+}
+            
 ```
 
-```{r plot_state_votes}
+After getting the data into a state where we can start to plot out the percentages, we decided to use `ggplot` to create a map to show the percentage of voters that voted for Donald Trump in the 2016 election. In order to show differences across states, we decided to create delta values of the percent votes for Donald Trump from 50%.  
+
+```{r}
 ggplot(data = states) +
   ggtitle("Percentage of Trump Votes Delta from 50%") +
-  geom_sf(aes(fill = (states$trump_per-0.5))) +
-  labs(fill = "Percentage") +
+  geom_sf(aes(fill = states$trump_per-0.5)) +
   scale_fill_distiller(palette ="RdBu", limits = c(-0.5,0.5)) +
+  labs(fill = "Percentage") +
   coord_sf(xlim = c(-125,-65), ylim = c(25,50), expand = FALSE) + 
   theme(
-    plot.title = element_text(hjust = 0.5)
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.justification = "center",
+    axis.text.x = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+
+**Potential Alternative Map**: After getting the data into a state where we can start to plot out the percentages, we decided to use `ggplot` to create a map to show the percentage of voters that voted for Donald Trump in the 2016 election. In order to show differences across states, we decided to show a breakdown based on percent groupings of total votes for Donald Trump. States that are more red had a larger percentage of Trump voters, while states that are more blue had a smaller percentage of Trump voters.
+
+
+```{r plot_state_votes}
+mycols <- c("#CF0F0F", "#CF9594", "#95A7C2", "#30659B")
+
+ggplot(data = states) +
+  ggtitle("2016 Election - Percentage of Votes for Trump By State") +
+  geom_sf(aes(fill = states$color)) +
+  scale_fill_manual(values = mycols) +
+  coord_sf(xlim = c(-125,-65), ylim = c(25,50), expand = FALSE) + 
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom",
+    legend.direction = "vertical",
+    legend.justification = "center",
+    legend.title = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
   )
 ```
 
+***
+
+Next, we needed to do some data wrangling in order to isolate the responses that we will use later for data analysis and mapping. We decided to create a for loop to create multiple data frames that have the state of the respondent as well as their numerical answer. Additionally, we decided to subset these datasets to only include definitive answers. In other words, we removed responses that indicated "Don't know" or "Refuse to answer".
+
 ```{r calculate_state_values}
-Temp_df_a<- avs[which(avs$q17a <5),c(4,90)]
-Temp_df_b<- avs[which(avs$q17b <5),c(4,92)]
-Temp_df_c<- avs[which(avs$q17c <5),c(4,91)]
-Temp_df_d<- avs[which(avs$q17d <5),c(4,93)]
-Temp_df_e<- avs[which(avs$q17e <5),c(4,94)]
-Temp_df_f<- avs[which(avs$q17f <5),c(4,95)]
-Temp_df_g<- avs[which(avs$q17g <5),c(4,96)]
-Temp_df_h<- avs[which(avs$q17h <5),c(4,97)]
+question_list <- c("q17a", "q17b", "q17c", "q17d", "q17e", "q17f", "q17g", "q17h")
+df_list <- c("Temp_df_a", "Temp_df_b", "Temp_df_c", "Temp_df_d", "Temp_df_e", "Temp_df_f", "Temp_df_g", "Temp_df_h")
+q_num <- c(90,92,91,93,94,95,96,97)
+
+for(i in 1:length(q_num)){
+ assign(df_list[i], avs[which(avs[[paste(question_list[i])]]< 5), c(4, q_num[i])])
+}
+
+
+# Temp_df_a<- avs[which(avs$q17a <5),c(4,90)]
+# Temp_df_b<- avs[which(avs$q17b <5),c(4,92)]
+# Temp_df_c<- avs[which(avs$q17c <5),c(4,91)]
+# Temp_df_d<- avs[which(avs$q17d <5),c(4,93)]
+# Temp_df_e<- avs[which(avs$q17e <5),c(4,94)]
+# Temp_df_f<- avs[which(avs$q17f <5),c(4,95)]
+# Temp_df_g<- avs[which(avs$q17g <5),c(4,96)]
+# Temp_df_h<- avs[which(avs$q17h <5),c(4,97)]
 ```
+
+***
+
+Now that the data has been tidy'd into temporary dataframes and cleaned up, we can use some of the tidyverse functions in order to group and calculate average response values for each question by state. We can do this by using the `lapply()`, `group_by()`, and `summarise_all()` functions.  
 
 ```{r}
-state_q17a <- Temp_df_a %>% group_by(state) %>% summarise_all(mean)
-state_q17b <- Temp_df_b %>% group_by(state) %>% summarise_all(mean)
-state_q17c <- Temp_df_c %>% group_by(state) %>% summarise_all(mean)
-state_q17d <- Temp_df_d %>% group_by(state) %>% summarise_all(mean)
-state_q17e <- Temp_df_e %>% group_by(state) %>% summarise_all(mean)
-state_q17f <- Temp_df_f %>% group_by(state) %>% summarise_all(mean)
-state_q17g <- Temp_df_g %>% group_by(state) %>% summarise_all(mean)
-state_q17h <- Temp_df_h %>% group_by(state) %>% summarise_all(mean)
+df_state_list <- c("state_q17a", "state_q17b", "state_q17c", "state_q17d", "state_q17e", "state_q17f", "state_q17g", "state_q17h")
+dfs <- list(Temp_df_a, Temp_df_b, Temp_df_c, Temp_df_d, Temp_df_e, Temp_df_f, Temp_df_g, Temp_df_h)
+
+grouped_data <- lapply(dfs, function(x){ x %>% group_by(state) %>% summarise_all(mean)})
+
+for(i in 1:length(grouped_data)){
+  assign(df_state_list[i], as.data.frame(grouped_data[[i]]))
+}
+
+# state_q17a <- Temp_df_a %>% group_by(state) %>% summarise_all(mean)
+# state_q17b <- Temp_df_b %>% group_by(state) %>% summarise_all(mean)
+# state_q17c_test <- Temp_df_c %>% group_by(state) %>% summarise_all(mean)
+# state_q17d <- Temp_df_d %>% group_by(state) %>% summarise_all(mean)
+# state_q17e <- Temp_df_e %>% group_by(state) %>% summarise_all(mean)
+# state_q17f <- Temp_df_f %>% group_by(state) %>% summarise_all(mean)
+# state_q17g <- Temp_df_g %>% group_by(state) %>% summarise_all(mean)
+# state_q17h <- Temp_df_h %>% group_by(state) %>% summarise_all(mean)
 ```
 
+
+Next, we merged all of the answers to question #17 into one dataframe in order to set up our file for mapping. By then joining these answers to the coordinate and geometric information, we were then able to create some maps of answer responses to these questions broken out by U.S. state.
 ```{r}
 library(openintro)
 q17_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q17a, state_q17b, state_q17c, state_q17d, state_q17e, state_q17f, state_q17g, state_q17h))
@@ -156,13 +253,16 @@ states <- merge(states,q17_df,by="ID")
 ```
 
 ```{r generic state plot, echo = FALSE}
-state_map <- ggplot(data = states) + 
+state_map <- ggplot(data = states) +
   theme(
     plot.title = element_text(hjust = 0.5)
   )
 ```
 
-## Plots to Parts of Question 17:
+***
+
+
+### Maps that correspond to answers to question 17:
 
 ## Do you strongly favor, favor, oppose or strongly oppose the following? {.tabset .tabset-pills}
 
