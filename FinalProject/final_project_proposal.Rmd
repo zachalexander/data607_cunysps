@@ -50,7 +50,10 @@ The second dataset that we’ll work with contains data related to values, with 
 
 ### Reading data files from Github
 ```{r, warning=FALSE, message=FALSE, echo=TRUE}
-avs <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/avs.csv')
+library(haven)
+# avs <- read.csv('https://raw.githubusercontent.com/zachalexander/data607_cunysps/master/FinalProject/avs.csv')
+spss_file <- file.path('https://github.com/zachalexander/data607_cunysps/blob/master/FinalProject/PRRI-2017-American-Values-Survey.sav?raw=true')
+avs <- read_sav(spss_file)
 
 kable(head(avs, n = 15L), align = rep('c', 5)) %>% 
   kable_styling(bootstrap_options = c("striped", "responsive", "condensed"), full_width = TRUE)
