@@ -110,19 +110,15 @@ For our next analyses and plots, we'll want to load in a few mapping packages, a
 ```{r plot trumps votes, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(sf)
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(rgeos)
 library(maps)
 library(RColorBrewer)
 ```
 
 #### Misha - definitely edit this up if you'd like!
-In order to create our first map, we needed to use the `tools` package to help load in the necessary files that will allow us to create a map of the United States. We were able to load in the proper geometries to draw the state boundaries, as well as project the map to the correct coordinate plane. Then, we needed to subset our election data a bit more to remove the vote totals for Alaska and Hawaii, since there was a very low number of respondents to the American Values Survey from these states, we felt that any analyses and comparisons would not be representative of these locations.  
+In order to create our first map, we needed to use the `maps` package to help load in the necessary data that will allow us to create a map of the United States. We were able to load in the proper geometries to draw the state boundaries, as well as project the map to the correct coordinate plane. Then, we needed to subset our election data a bit more to remove the vote totals for Alaska and Hawaii, since there was a very low number of respondents to the American Values Survey from these states, we felt that any analyses and comparisons would not be representative of these locations.  
 
 ```{r}
 library(tools)
-world <- ne_countries(scale = "medium", returnclass = "sf")
 states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
 states$ID <- toTitleCase(states$ID)
 USA_votes <- Trump_map[which(Trump_map$state != "Alaska" & Trump_map$state != "Hawaii"),]
@@ -158,7 +154,7 @@ After getting the data into a state where we can start to plot out the percentag
 
 ```{r, echo=FALSE}
 ggplot(data = states) +
-  ggtitle("Percentage of Trump Votes Delta from 50%") +
+  ggtitle("Percentage of 2016 Trump Votes Delta from 50%") +
   geom_sf(aes(fill = states$trump_per-0.5)) +
   scale_fill_distiller(palette ="RdBu", limits = c(-0.5,0.5)) +
   labs(fill = "Percentage") +
@@ -227,16 +223,6 @@ q_num <- c(90,92,91,93,94,95,96,97)
 for(i in 1:length(q_num)){
  assign(df_list[i], avs[which(avs[[paste(question_list[i])]]< 5), c(4, q_num[i])])
 }
-
-
-# Temp_df_a<- avs[which(avs$q17a <5),c(4,90)]
-# Temp_df_b<- avs[which(avs$q17b <5),c(4,92)]
-# Temp_df_c<- avs[which(avs$q17c <5),c(4,91)]
-# Temp_df_d<- avs[which(avs$q17d <5),c(4,93)]
-# Temp_df_e<- avs[which(avs$q17e <5),c(4,94)]
-# Temp_df_f<- avs[which(avs$q17f <5),c(4,95)]
-# Temp_df_g<- avs[which(avs$q17g <5),c(4,96)]
-# Temp_df_h<- avs[which(avs$q17h <5),c(4,97)]
 ```
 
 ***
@@ -252,15 +238,6 @@ grouped_data <- lapply(dfs, function(x){ x %>% group_by(state) %>% summarise_all
 for(i in 1:length(grouped_data)){
   assign(df_state_list[i], as.data.frame(grouped_data[[i]]))
 }
-
-# state_q17a <- Temp_df_a %>% group_by(state) %>% summarise_all(mean)
-# state_q17b <- Temp_df_b %>% group_by(state) %>% summarise_all(mean)
-# state_q17c <- Temp_df_c %>% group_by(state) %>% summarise_all(mean)
-# state_q17d <- Temp_df_d %>% group_by(state) %>% summarise_all(mean)
-# state_q17e <- Temp_df_e %>% group_by(state) %>% summarise_all(mean)
-# state_q17f <- Temp_df_f %>% group_by(state) %>% summarise_all(mean)
-# state_q17g <- Temp_df_g %>% group_by(state) %>% summarise_all(mean)
-# state_q17h <- Temp_df_h %>% group_by(state) %>% summarise_all(mean)
 ```
 
 
@@ -375,17 +352,33 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-```{r calculate_state_values2, echo = FALSE}
-# Temp_df_a<- avs[which(avs$q17a < 5),c(4,104)]
-# Temp_df_b<- avs[which(avs$q17b < 5),c(4,105)]
-# Temp_df_c<- avs[which(avs$q17c < 5),c(4,106)]
-# Temp_df_d<- avs[which(avs$q17d < 5),c(4,107)]
-# Temp_df_e<- avs[which(avs$q17e < 5),c(4,108)]
-# Temp_df_f<- avs[which(avs$q17f < 5),c(4,109)]
-# Temp_df_g<- avs[which(avs$q17g < 5),c(4,110)]
-# Temp_df <- avs[which(avs$q24 < 3),c(4,112)]
-# Temp_df2 <- avs[which(avs$q25 < 3),c(4,114)]
+####
 
+***
+
+After creating maps for each component of question #17, we could visibly see that some items seemed to draw starker contrasts across states than others. For instance, there seemed to generally be pretty broad support in favor of allowing DACA recipients brought to the U.S. as children to gain legal resident status if they attend college or join the military. However, there seemed to be more disagreement across states for support over withdrawing from the nuclear agreement with Iran or temporarily preventing people from some majority Muslim countries from entering the United States.  
+
+At this point we decided to build our first regression model using the parts of question 17 as the variables. 
+
+```{r regression1}
+elec_regr1 <- lm(trump_per ~  q17a + q17b + q17c + q17d + q17e + q17f + q17g + q17h , data = states)
+summary(elec_regr1)
+```
+
+The first model resulted in an $R^{2}$ value of 0.529. Not too shabby for a first pass, but something that could hopefully be improved on. Before moving on to additional variables, we decided to apply some backward elimination to reduce our focus. This resulted in the following model with a slightly lower $R^{2}$ of 0.5173, but fewer variables and a higher adjusted $R^{2}$.
+
+```{r regression2}
+elec_regr2 <- lm(trump_per ~  q17c + q17d + q17e + q17f + q17h , data = states)
+summary(elec_regr2)
+```
+
+***
+At this point we decided to expand our field of variables and look at more questions. The next step was scrubbing the data from questions 22, 24 and 25 and incorporating them into our regression model. 
+
+#### Question 22 -- Now as I read a few statements please tell me whether you completely agree, mostly agree, mostly disagree or completely disagree with each one? {.tabset .tabset-pills}
+
+
+```{r calculate_state_values_q6_22_24_25, echo = FALSE}
 df_list_2 <- c("Temp_df_i", "Temp_df_j", "Temp_df_k", "Temp_df_l", "Temp_df_m", "Temp_df_n", "Temp_df_o")
 q_num <- c(104,105,106,107,108,109,110)
 
@@ -400,49 +393,36 @@ q_num <- c(112,114)
 for(i in 1:length(q_num)){
  assign(df_list_3[i], avs[which(avs[[paste(question_list[i])]]< 3), c(4, q_num[i])])
 }
+
+question_list <- c("q6a", "q6b", "q6c", "q6d", "q6e", "q6f", "q20", "q21")
+df_list_4 <- c("Temp_df_r", "Temp_df_s", "Temp_df_t", "Temp_df_u", "Temp_df_v", "Temp_df_w", "Temp_df_x", "Temp_df_y")
+q_num <- c(65,66,67,68,69,70,100,102)
+
+for (i in 1:length(q_num)){
+  assign(df_list_4[i], avs[which(avs[[paste(question_list[i])]] < 4), c(4,q_num[i])])
+}
 ```
 
 ```{r, echo = FALSE}
 
-df_state_list <- c("state_q22a", "state_q22b", "state_q22c", "state_q22d", "state_q22e", "state_q22f", "state_q22g", "state_q24", "state_q25")
-dfs <- list(Temp_df_i, Temp_df_j, Temp_df_k, Temp_df_l, Temp_df_m, Temp_df_n, Temp_df_o, Temp_df_p, Temp_df_q)
+df_state_list <- c("state_q22a", "state_q22b", "state_q22c", "state_q22d", "state_q22e", "state_q22f", "state_q22g", "state_q24", "state_q25", "state_q6a", "state_q6b", "state_q6c", "state_q6d", "state_q6e", "state_q6f", "state_q20", "state_q21")
+dfs <- list(Temp_df_i, Temp_df_j, Temp_df_k, Temp_df_l, Temp_df_m, Temp_df_n, Temp_df_o, Temp_df_p, Temp_df_q, Temp_df_r, Temp_df_s, Temp_df_t, Temp_df_u, Temp_df_v, Temp_df_w, Temp_df_x, Temp_df_y)
 
 grouped_data <- lapply(dfs, function(x){ x %>% group_by(state) %>% summarise_all(mean)})
 
 for(i in 1:length(grouped_data)){
   assign(df_state_list[i], as.data.frame(grouped_data[[i]]))
 }
-
-# state_q22a <- Temp_df_a %>% group_by(state) %>% summarise_all(mean)
-# state_q22b <- Temp_df_b %>% group_by(state) %>% summarise_all(mean)
-# state_q22c <- Temp_df_c %>% group_by(state) %>% summarise_all(mean)
-# state_q22d <- Temp_df_d %>% group_by(state) %>% summarise_all(mean)
-# state_q22e <- Temp_df_e %>% group_by(state) %>% summarise_all(mean)
-# state_q22f <- Temp_df_f %>% group_by(state) %>% summarise_all(mean)
-# state_q22g <- Temp_df_g %>% group_by(state) %>% summarise_all(mean)
-# state_q24 <- Temp_df %>% group_by(state) %>% summarise_all(mean)
-# state_q25 <- Temp_df2 %>% group_by(state) %>% summarise_all(mean)
 ```
 
-####
-
-***
-
-After creating maps for each component of question #17, we could visibly see that some items seemed to draw starker contrasts across states than others. For instance, there seemed to generally be pretty broad support in favor of allowing DACA recipients brought to the U.S. as children to gain legal resident status if they attend college or join the military. However, there seemed to be more disagreement across states for support over withdrawing from the nuclear agreement with Iran or temporarily preventing people from some majority Muslim countries from entering the United States.  
-
-These responses will be helpful when building out our regression models later on in our investigation.  
-
-***
-
-#### Question 22 -- Now as I read a few statements please tell me whether you completely agree, mostly agree, mostly disagree or completely disagree with each one? {.tabset .tabset-pills}
 
 ```{r}
 library(openintro)
-q22_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q22a, state_q22b, state_q22c, state_q22d, state_q22e, state_q22f, state_q22g, state_q24, state_q25))
+q22_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q22a, state_q22b, state_q22c, state_q22d, state_q22e, state_q22f, state_q22g, state_q24, state_q25, state_q6a, state_q6b, state_q6c, state_q6d, state_q6e, state_q6f, state_q20, state_q21))
 
 q22_df <- q22_df[which(q22_df$state != "HI" & q22_df$state != "AK"),]
 q22_df$state <- abbr2state(q22_df$state)
-names(q22_df) <- c("ID", "q22a", "q22b", "q22c", "q22d", "q22e", "q22f", "q22g", "q24", "q25")
+names(q22_df) <- c("ID", "q22a", "q22b", "q22c", "q22d", "q22e", "q22f", "q22g", "q24", "q25", "q6a", "q6b", "q6c", "q6d", "q6e", "q6f", "q20", "q21")
 
 states <- merge(states,q22_df,by="ID")
 ```
@@ -537,41 +517,181 @@ state_map +
   scale_fill_gradient2(limits = c(-0.5,0.5))
 ```
 
+Once we'd aggregated the data from these questions, we decided to take a look at an expanded regression model incorporating our new variables. 
 
-***
-
-#### Regressions
-
-***
-
-Since we were able to see some noticeable differences in responses across states for some of the above questions, we decided to fit these variables into a multiple regression model.
-
-```{r regression1}
-elec_regr1 <- lm(trump_per ~  q17c + q17d + q17h , data = states)
-summary(elec_regr1)
-```
-
-```{r regression2}
-elec_regr2 <- lm(trump_per ~  q17c + q17d + q22d + q24 , data = states)
-summary(elec_regr2)
-```
 ```{r regression3}
-elec_regr3 <- lm(trump_per ~  q17a + q17b + q17c + q17d + q17e + q17f + q17g + q17h +q22a + q22b + q22c + q22d + q22e + q22f + q24 , data = states)
+elec_regr3 <- lm(trump_per ~  q17c + q17d + q17e + q17f + q17h + q22a + q22b + q22c + q22d + q22e + q22f + q24 + q25, data = states)
 summary(elec_regr3)
 ```
 
+Adding our 8 new variables yielded a slight increase in the $R^{2}$ value (about 0.09), but many of the variables show high p-values and can therefore be eliminated from the model without significant losses to the $R^{2}$ value. Our backward elimination process here led to us removing all of the responses to the parts of question 22. It appears that the responses to the parts of that question were not strong predictors of a vote for Trump in 2016. 
+
 ```{r regression4}
-elec_regr4 <- lm(trump_per ~  q17c + q17d + q17e + q17f + q17h + q24 + q25 , data = states)
+elec_regr4 <- lm(trump_per ~  q17c + q17d + q17e + q24 + q25, data = states)
 summary(elec_regr4)
 ```
 
+Having looked over the Survey, we decided to incorporate the responses to question 6 into our model as well. Below are plots of the responses organized by state.
+
+#### Question 6 -- Should **the following topic** be the highest priority, high but not the highest, or a lower priority? {.tabset .tabset-pills}
+
+##### A
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Reforming the nation's immigration system") +
+  geom_sf(aes(fill = -(states$q6a-2))) +
+  labs(fill = "Priority") +
+  scale_fill_gradient2(limits = c(-1,1))
+```
+
+##### B
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Enacting stricter gun control laws") +
+  geom_sf(aes(fill = -(states$q6b-2))) +
+  labs(fill = "Priority") +
+  scale_fill_gradient2(limits = c(-1,1))
+```
+
+##### C
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Reducing health care costs") +
+  geom_sf(aes(fill = -(states$q6c-2))) +
+  labs(fill = "Priority") +
+  scale_fill_gradient2(limits = c(-1,1))
+```
+
+##### D
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Reducing the budget deficit") +
+  geom_sf(aes(fill = -(states$q6d-2))) +
+  labs(fill = "Priority") +
+  scale_fill_gradient2(limits = c(-1,1))
+```
+
+##### E
+  
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Changing the federal income tax system to make it more fair") +
+  geom_sf(aes(fill = -(states$q6e-2))) +
+  labs(fill = "Priority") +
+  scale_fill_gradient2(limits = c(-1,1))
+```
+
+##### F
+
+```{r, echo = FALSE, fig.align = 'center'}
+state_map +
+  ggtitle("Enacting legislation to address climate change") +
+  geom_sf(aes(fill = -(states$q6f-2))) +
+  labs(fill = "Priority") +
+  scale_fill_gradient2(limits = c(-1,1))
+```
+
+####
+
+This next regression model incorporated all of the responses to questions 6a-f.
 
 ```{r regression5}
-elec_regr5 <- lm(trump_per ~ q17a + q17b + q17c + q17d + q17e + q17f + q17g + q17h + q22a + q22b + q22c + q22d + q22e + q22f + q22g + q24 + q25, data = states)
-step(elec_regr5, direction = "backward", trace = FALSE)
+elec_regr5 <- lm(trump_per ~  q17c + q17d + q17e + q24 + q25 + q6a + q6b + q6c + q6d + q6e + q6f, data = states)
+summary(elec_regr5)
+```
 
-fnl_model <- lm(trump_per ~ q17c + q17d + q17e + q24 + q25, data = states)
-summary(fnl_model)
+Finally, a respectable $R^{2}$ value! Let's clean it up a little by removing some of the less impactful variables...
+
+```{r regression6}
+elec_regr6 <- lm(trump_per ~  q17c + q17d + q24 + q6b + q6c + q6d + q6e, data = states)
+summary(elec_regr6)
+```
+
+```{r}
+require(ggiraph)
+require(ggiraphExtra)
+require(plyr)
+require(tidyverse)
+
+# map_data <- USA_votes %>% select(state, trump_per)
+
+# write.csv(map_data, 'C:/Users/zalexander/Desktop/election_data.csv')
+
+states <- states %>% select(ID, trump_per, q17a, q17b, q17d, q17f, q22e, q22f, q6b, q6c, q6e, q6f, q20, q21)
+
+
+for(i in 1:length(states$ID)){
+  states$model[i] <- 0.83630 + 
+    (0.07863 * states$q17a[i]) + 
+    (-0.08399 * states$q17b[i]) + 
+    (-0.14377 * states$q17d[i]) + 
+    (0.09759 * states$q17f[i]) + 
+    (-0.06089 * states$q22e[i]) + 
+    (0.07426 * states$q22f[i]) + 
+    (0.14610 * states$q6b[i]) +
+    (-0.12655 * states$q6c[i]) +
+    (-0.08417 * states$q6e[i]) +
+    (-0.04930 * states$q6f[i]) +
+    (-0.41984 * states$q20[i]) +
+    (0.40825 * states$q21[i])
+  
+  states$diff[i] <- states$model[i] - states$trump_per[i]
+}
+
+model <- lm(formula = trump_per ~ q17a + q17b + q17d + q17f+ q22e+ q22f+ q6b+ q6c+ q6e+ q6f + q20+ q21, data = states)
+summary(model)
+step(model, direction = "both", trace=FALSE ) 
+
+model <- lm(formula = trump_per ~ q17a + q17b + q17d + q17f+ q22e+ q22f+ q6b+ q6c+ q6e + q20+ q21, data = states)
+summary(model)
+
+for(i in 1:length(states$ID)){
+  states$model_two[i] <- 0.41340 + 
+    (0.10186 * states$q17a[i]) + 
+    (-0.08226 * states$q17b[i]) + 
+    (-0.10941 * states$q17d[i]) + 
+    (0.11533 * states$q17f[i]) + 
+    (-0.06833 * states$q22e[i]) + 
+    (0.07729 * states$q22f[i]) + 
+    (0.16358 * states$q6b[i]) +
+    (-0.11869 * states$q6c[i]) +
+    (-0.08723 * states$q6e[i]) +
+    (-0.28826 * states$q20[i]) +
+    (0.36884 * states$q21[i])
+  
+  states$diff_two[i] <- states$model_two[i] - states$trump_per[i]
+}
+
+states_out <- states %>% 
+  filter(ID != "California" & ID != "Maryland" & ID != "Oklahoma" & ID != "Montana" & ID != "North Dakota")
+
+model_three <- lm(formula = trump_per ~ q17a + q17b + q17d + q17f+ q22e+ q22f+ q6b+ q6c+ q6e + q20+ q21, data = states_out)
+summary(model_three)
+
+for(i in 1:length(states_out$ID)){
+  states_out$model_three[i] <- 0.35615 + 
+    (0.08077 * states_out$q17a[i]) + 
+    (-0.07477 * states_out$q17b[i]) + 
+    (-0.12467 * states_out$q17d[i]) + 
+    (0.12577 * states_out$q17f[i]) + 
+    (-0.08823 * states_out$q22e[i]) + 
+    (0.06634 * states_out$q22f[i]) + 
+    (0.15742 * states_out$q6b[i]) +
+    (-0.09137 * states_out$q6c[i]) +
+    (-0.06588 * states_out$q6e[i]) +
+    (-0.26037 * states_out$q20[i]) +
+    (0.42384 * states_out$q21[i])
+  
+  states_out$diff_three[i] <- states_out$model_three[i] - states_out$trump_per[i]
+}
+
+model_data <- as.data.frame(states_out) %>% select(ID, trump_per, model_three, diff_three)
+
+write.csv(model_data, 'C:/Users/zalexander/Desktop/model_data.csv')
 ```
 
 
