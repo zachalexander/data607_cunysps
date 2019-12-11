@@ -1,7 +1,7 @@
 ---
-title: "DATA 607 - Final Project Proposal"
-author: "Zach Alexander and Misha Kollontai"
-date: "11/17/2019"
+title: "DATA 607 - Final Project"
+author: "Misha Kollontai and Zach Alexander"
+date: "12/11/2019"
 output: 
   html_document:
     toc: TRUE
@@ -12,7 +12,7 @@ options(width = 1200)
 
 *** 
 
-### Final Project Overview and Motivation
+## Final Project Overview and Motivation
 
 As the presidential election cycle starts to ramp up again, we thought it would be interesting to take a look back at the election data from 2016 in order to think more about potential factors that could affect the outcome of next year's vote. 
 Labeled by [Politico as the "biggest upset in U.S. history"](https://www.politico.com/story/2016/11/election-results-2016-clinton-trump-231070), a large narrative about a "divided" America continued to develop in the days following the 2016 presidential election. Many would argue that this narrative continues to dominate current news headlines and will be an influential factor in the way candidates run their campaigns over the next 12 months.  
@@ -20,30 +20,29 @@ Labeled by [Politico as the "biggest upset in U.S. history"](https://www.politic
 For our project, we are curious about what factors seem to “divide” America. We’ll explore questions such as:  
 
 + Which values are more characteristic of voters that decided to vote for Donald Trump in 2016?
-+ Which are more representative of voters that voted for Hilary Clinton in 2016?
 + Are there trends in values on a statewide level? And if so, do they favor one candidate over the other? 
 + Were certain values more predictive than others in favoring votes for a particular candidate?
 
 ***
 
-### Our Datasets
+## Our Datasets
 
 We’ll be utilizing two different datasets for this project.  
 
 ***
 
-#### Dataset 1 -- 2016 Presidential Election Data
+### Dataset 1 -- 2016 Presidential Election Data
 
 The first contains the 2016 presidential election results for every United States county, among other past election data. 
 
 ```{r, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(dplyr)
-library(tidyr)
-library(plyr)
-library(knitr)
-library(kableExtra)
+require(tidyverse)
+require(dplyr)
+require(tidyr)
+require(plyr)
+require(knitr)
+require(kableExtra)
 ```
 
 ```{r}
@@ -61,9 +60,9 @@ The dataset was found on GitHub, here: https://github.com/tonmcg/US_County_Level
 
 ***
 
-#### Dataset 2 -- Public Religion Research Institute (PRRI)
+### Dataset 2 -- Public Religion Research Institute (PRRI)
 
-The second dataset that we’ll work with contains data related to values, with a respondent identifier that captures their state of residence – which we can use to connect to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
+The second dataset that we’ll work with contains data related to values, with a respondent identifier that captures their state of residence – which we can use to connect back to our election results. This dataset was found on the [Public Religion Research Institute (PRRI)](https://www.prri.org/data-vault/) website and contains a large number of questions related to values ranging from respondent’s views on immigration, gun control laws, health care, and much more. 
 
 **Information about this dataset:** This survey was completely designed and conducted by PRRI. Their website states that it is the "eighth annual multi-issue survey of it's kind".  
 
@@ -76,14 +75,14 @@ The second dataset that we’ll work with contains data related to values, with 
 
 ***
 
-### Data Wrangling
+## Data Wrangling
 
 ***
 
-#### Reading data files from Github
+### Reading data files from Github
 
 ```{r, warning=FALSE, message=FALSE, echo=TRUE}
-library(haven)
+require(haven)
 spss_file <- file.path('https://github.com/zachalexander/data607_cunysps/blob/master/FinalProject/PRRI-2017-American-Values-Survey.sav?raw=true')
 avs <- read_sav(spss_file)
 kable(head(avs, n = 15L), align = rep('c', 5)) %>% 
@@ -93,32 +92,31 @@ kable(head(avs, n = 15L), align = rep('c', 5)) %>%
 
 *** 
 
-#### Subsetting the data
+### Subsetting the data
 
-To start we subset the election data and select columns that are relevant to the 2016 election, including the state column and the election totals for Republicans, Democrats, and Independents by county. Then, we create a `total` column that sums the total votes per county. Next, we use the group_by() and summarise_all() functions to group and sum the votes by state. Now, we have a data frame with the summed votes per state, with each state only being one line. Finally, we add a percentage column to get the percent of voters that voted for Donald Trump broken down by each state.  
+To start, we subsetted the election data and selected columns that were relevant to the 2016 election, including the state column and the election totals for Republicans, Democrats, and Independents by county. Then, we created a `total` column that sums the total votes per county. Next, we used the `group_by()` and `summarise_all()` functions to group and sum the votes by state. At this point we had a data frame with each row contianing voter information for a state. Finally, we added a percentage column to get the percent of voters that voted for Donald Trump broken down by each state by dividing the number or Trump votes by the total number of votes in each state. 
 
 ```{r}
-library(dplyr)
 Trump_sub<- election_data[,c(2,5,6,7)]
 Trump_sub$total16 <- Trump_sub$trump16 + Trump_sub$clinton16 + Trump_sub$otherpres16
 Trump_map <- Trump_sub %>% group_by(state) %>% summarise_all(sum)
 Trump_map$trump_per <- Trump_map$trump16/Trump_map$total16
 ```
 
-For our next analyses and plots, we'll want to load in a few mapping packages, as well as the tidyverse package for more data wrangling.  
+For our next analyses and plots, we had to load in a few mapping packages, as well as the tidyverse package for more data wrangling.  
 
 ```{r plot trumps votes, message=FALSE, warning=FALSE}
-library(tidyverse)
-library(sf)
-library(maps)
-library(RColorBrewer)
+require(sf)
+require(maps)
+require(RColorBrewer)
+require(tools)
 ```
 
-#### Misha - definitely edit this up if you'd like!
-In order to create our first map, we needed to use the `maps` package to help load in the necessary data that will allow us to create a map of the United States. We were able to load in the proper geometries to draw the state boundaries, as well as project the map to the correct coordinate plane. Then, we needed to subset our election data a bit more to remove the vote totals for Alaska and Hawaii, since there was a very low number of respondents to the American Values Survey from these states, we felt that any analyses and comparisons would not be representative of these locations.  
+***
+
+In order to create our first map, we needed to use the `maps` package to help load in the necessary geometry data that allowed us to create a map of the United States. We were able to load in the proper geometries to draw the state boundaries, as well as project the map to the correct coordinate plane. Then, we needed to subset our election data a bit more to remove the vote totals for Alaska and Hawaii, since there was a very low number of respondents from these states that contributed to the American Values Survey -- we felt that any analyses and comparisons would not be representative of these states.  
 
 ```{r}
-library(tools)
 states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
 states$ID <- toTitleCase(states$ID)
 USA_votes <- Trump_map[which(Trump_map$state != "Alaska" & Trump_map$state != "Hawaii"),]
@@ -143,18 +141,18 @@ for(i in 1:length(states$trump_per)){
 
 
 ***
-### 2016 Presidential Election Data
+## 2016 Presidential Election Data {.tabset .tabset-pills}
 ***
 
-#### Here's the Election Data presented in two ways: {.tabset .tabset-pills}
+After getting the data into a state where we could start to plot out the percentages, we decided to use `ggplot` to create a map to show the percentage of voters that voted for Donald Trump in the 2016 election. Since we were focusing on Trump votes, our inital pass focused on how many percent more or less than 50% did Donal Trump receive in 2016 in each particular state. At this point we saw that the differences in many states were fairly low, so the contrast in our image was not ideal. To improve this we created a second plot where we binned the percent of Trump votes into 4 groups - 'more than 55% for Trump', 'between 50% and 55% for Trump', 'between 45% and 50% for Trump' and 'less than 45% for Trump'. This map provided a much better picture of the broader statewise trends. Click between the two tabs below to see both options. 
 
-##### Percentages
+From these maps, we determined that the percentage of votes per state varied quite drastically across different states and regions of the United States. In the next phase, we thought it would be interesting to see if certain values can be attributed to these differences in voting percentages for Donald Trump.
 
-After getting the data into a state where we can start to plot out the percentages, we decided to use `ggplot` to create a map to show the percentage of voters that voted for Donald Trump in the 2016 election. In order to show differences across states, we decided to create delta values of the percent votes for Donald Trump from 50%. 
+### Percentages
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="left", fig.width=8}
 ggplot(data = states) +
-  ggtitle("Percentage of 2016 Trump Votes Delta from 50%") +
+  ggtitle("2016 Election - Trump Votes Delta from 50%") +
   geom_sf(aes(fill = states$trump_per-0.5)) +
   scale_fill_distiller(palette ="RdBu", limits = c(-0.5,0.5)) +
   labs(fill = "Percentage") +
@@ -174,12 +172,9 @@ ggplot(data = states) +
 ```
 
 
-##### Broader Trend
+### Broader Trend
 
-In order to show differences across states, we decided to show a breakdown based on percent groupings of total votes for Donald Trump. States that are more red had a larger percentage of Trump voters, while states that are more blue had a smaller percentage of Trump voters.  
-
-
-```{r plot_state_votes, echo=FALSE}
+```{r plot_state_votes, echo=FALSE, fig.width=10, fig.align="left"}
 mycols <- c("#CF0F0F", "#CF9594", "#95A7C2", "#30659B")
 
 ggplot(data = states) +
@@ -189,7 +184,7 @@ ggplot(data = states) +
   coord_sf(xlim = c(-125,-65), ylim = c(25,50), expand = FALSE) + 
   theme(
     plot.title = element_text(hjust = 0.5),
-    legend.position = "bottom",
+    legend.position = "right",
     legend.direction = "vertical",
     legend.justification = "center",
     legend.title = element_blank(),
@@ -201,19 +196,13 @@ ggplot(data = states) +
   )
 ```
 
-####
-
 ***
-From these maps, we can see that the percentage of votes per state varied quite drastically across different states and regions of the United States. In the next phase, we thought it would be interesting to see if certain values can be attributed to these differences in voting percentages for Donald Trump.  
 
+## American Values Survey
 
 ***
 
-### American Values Survey
-
-***
-
-Next, we needed to do some data wrangling in order to isolate the responses that we will use later for data analysis and mapping. We decided to create a for loop to create multiple data frames that have the state of the respondent as well as their numerical answer. Additionally, we decided to subset these datasets to only include definitive answers. In other words, we removed responses that indicated "Don't know" or "Refuse to answer".  
+Next, we needed to do some data wrangling in order to isolate the responses that we used later for data analysis and mapping. We decided to create a `for()` loop to create multiple data frames that have the state of the respondent as well as their numerical answer. Additionally, we decided to subset these datasets to only include definitive answers. In other words, we removed responses that indicated "Don't know" or "Refuse to answer".
 
 ```{r calculate_state_values}
 question_list <- c("q17a", "q17b", "q17c", "q17d", "q17e", "q17f", "q17g", "q17h")
@@ -227,7 +216,7 @@ for(i in 1:length(q_num)){
 
 ***
 
-Now that the data has been tidy'd into temporary dataframes and cleaned up, we can use some of the tidyverse functions in order to group and calculate average response values for each question by state. We can do this by using the `lapply()`, `group_by()`, and `summarise_all()` functions.  
+After the data had been tidy'd into temporary dataframes and cleaned up, we were able to use some of the tidyverse functions in order to group and calculate average response values for each question by state. We did this by using the `lapply()`, `group_by()`, and `summarise_all()` functions.  
 
 ```{r}
 df_state_list <- c("state_q17a", "state_q17b", "state_q17c", "state_q17d", "state_q17e", "state_q17f", "state_q17g", "state_q17h")
@@ -241,7 +230,7 @@ for(i in 1:length(grouped_data)){
 ```
 
 
-Next, we merged all of the answers to question #17 into one dataframe in order to set up our file for mapping. By then joining these answers to the coordinate and geometric information, we were then able to create some maps of answer responses to these questions broken out by U.S. state.  
+Next, we merged all of the answers to question #17 into one dataframe in order to set up our file for mapping. By then joining these answers to the coordinate and geometric information, we were able to create some maps of answer responses to these questions broken out by U.S. state.  
 
 ```{r, message=FALSE, warning=FALSE}
 library(openintro)
@@ -263,16 +252,16 @@ state_map <- ggplot(data = states) +
 
 ***
 
-#### Interpretation of American Values Survey Questions
+### Interpretation of American Values Survey Questions
 
-So after all of the data wrangling we performed, how can we interpret it? We decided to take a look at a few questions that seemed to be pertinent and relevant topics to see if they also varied across states. The first question we looked at was Question 17:  
+So, after all of the data wrangling we performed, how can we interpret it? We decided to take a look at a few questions that seemed to be pertinent and relevant topics to see if they also varied across states. The first question we looked at was Question 17. 
 
 ***
 
-#### Question 17 -- Do you strongly favor, favor, oppose or strongly oppose the following? {.tabset .tabset-pills}
+### Question 17 -- Do you strongly favor, favor, oppose or strongly oppose the following? {.tabset .tabset-pills}
 
 
-##### A
+#### A
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -282,7 +271,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### B
+#### B
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -292,7 +281,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### C
+#### C
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -302,7 +291,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### D
+#### D
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -312,7 +301,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### E
+#### E
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -322,7 +311,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### F
+#### F
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -332,7 +321,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### G
+#### G
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -342,7 +331,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### H
+#### H
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -352,13 +341,13 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-####
+### First analysis and regression model
 
 ***
 
 After creating maps for each component of question #17, we could visibly see that some items seemed to draw starker contrasts across states than others. For instance, there seemed to generally be pretty broad support in favor of allowing DACA recipients brought to the U.S. as children to gain legal resident status if they attend college or join the military. However, there seemed to be more disagreement across states for support over withdrawing from the nuclear agreement with Iran or temporarily preventing people from some majority Muslim countries from entering the United States.  
 
-At this point we decided to build our first regression model using the parts of question 17 as the variables. 
+At this point we decided to build our first regression model using the parts of question 17 as the variables and the percentage of votes won by Trump as the response.
 
 ```{r regression1}
 elec_regr1 <- lm(trump_per ~  q17a + q17b + q17c + q17d + q17e + q17f + q17g + q17h , data = states)
@@ -375,7 +364,7 @@ summary(elec_regr2)
 ***
 At this point we decided to expand our field of variables and look at more questions. The next step was scrubbing the data from questions 22, 24 and 25 and incorporating them into our regression model. 
 
-#### Question 22 -- Now as I read a few statements please tell me whether you completely agree, mostly agree, mostly disagree or completely disagree with each one? {.tabset .tabset-pills}
+### Question 22 -- Now as I read a few statements please tell me whether you completely agree, mostly agree, mostly disagree or completely disagree with each one? {.tabset .tabset-pills}
 
 
 ```{r calculate_state_values_q6_22_24_25, echo = FALSE}
@@ -401,12 +390,21 @@ q_num <- c(65,66,67,68,69,70,100,102)
 for (i in 1:length(q_num)){
   assign(df_list_4[i], avs[which(avs[[paste(question_list[i])]] < 4), c(4,q_num[i])])
 }
+
+question_list <- c("ideo")
+df_list_5 <- c("Temp_df_z")
+q_num <- c(26)
+
+for(i in 1:length(q_num)){
+  assign(df_list_5[i],avs[which(avs[[paste(question_list[i])]] < 6), c(4,q_num[i])])
+}
 ```
 
 ```{r, echo = FALSE}
 
-df_state_list <- c("state_q22a", "state_q22b", "state_q22c", "state_q22d", "state_q22e", "state_q22f", "state_q22g", "state_q24", "state_q25", "state_q6a", "state_q6b", "state_q6c", "state_q6d", "state_q6e", "state_q6f", "state_q20", "state_q21")
-dfs <- list(Temp_df_i, Temp_df_j, Temp_df_k, Temp_df_l, Temp_df_m, Temp_df_n, Temp_df_o, Temp_df_p, Temp_df_q, Temp_df_r, Temp_df_s, Temp_df_t, Temp_df_u, Temp_df_v, Temp_df_w, Temp_df_x, Temp_df_y)
+df_state_list <- c("state_q22a", "state_q22b", "state_q22c", "state_q22d", "state_q22e", "state_q22f", "state_q22g", "state_q24", "state_q25", "state_party", "state_q6a", "state_q6b", "state_q6c", "state_q6d", "state_q6e", "state_q6f", "state_q20", "state_q21", "state_ideo")
+
+dfs <- list(Temp_df_i, Temp_df_j, Temp_df_k, Temp_df_l, Temp_df_m, Temp_df_n, Temp_df_o, Temp_df_p, Temp_df_q, Temp_df_z, Temp_df_r, Temp_df_s, Temp_df_t, Temp_df_u, Temp_df_v, Temp_df_w, Temp_df_x, Temp_df_y, Temp_df_z)
 
 grouped_data <- lapply(dfs, function(x){ x %>% group_by(state) %>% summarise_all(mean)})
 
@@ -416,19 +414,19 @@ for(i in 1:length(grouped_data)){
 ```
 
 
-```{r}
+```{r, echo = FALSE}
 library(openintro)
-q22_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q22a, state_q22b, state_q22c, state_q22d, state_q22e, state_q22f, state_q22g, state_q24, state_q25, state_q6a, state_q6b, state_q6c, state_q6d, state_q6e, state_q6f, state_q20, state_q21))
+q22_df <- Reduce(function(x, y) merge(x, y, all=TRUE), list(state_q22a, state_q22b, state_q22c, state_q22d, state_q22e, state_q22f, state_q22g, state_q24, state_q25, state_q6a, state_q6b, state_q6c, state_q6d, state_q6e, state_q6f, state_q20, state_q21, state_ideo))
 
 q22_df <- q22_df[which(q22_df$state != "HI" & q22_df$state != "AK"),]
 q22_df$state <- abbr2state(q22_df$state)
-names(q22_df) <- c("ID", "q22a", "q22b", "q22c", "q22d", "q22e", "q22f", "q22g", "q24", "q25", "q6a", "q6b", "q6c", "q6d", "q6e", "q6f", "q20", "q21")
+names(q22_df) <- c("ID", "q22a", "q22b", "q22c", "q22d", "q22e", "q22f", "q22g", "q24", "q25", "q6a", "q6b", "q6c", "q6d", "q6e", "q6f", "q20", "q21", "ideo")
 
 states <- merge(states,q22_df,by="ID")
 ```
 
 
-##### A
+#### A
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -438,7 +436,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### B
+#### B
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -448,7 +446,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### C
+#### C
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -458,7 +456,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### D
+#### D
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -468,7 +466,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### E
+#### E
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -478,7 +476,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### F
+#### F
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -488,7 +486,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-##### G
+#### G
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -498,17 +496,24 @@ state_map +
   scale_fill_gradient2(limits = c(-1.5,1.5))
 ```
 
-####
+### Adding results from Q22 and Q25
 
 ***
 
-Additionally, we created maps for each component of question #22, where we could also visibly see that some items in this question seemed to draw starker contrasts across states than others. For instance, there seemed to generally be pretty broad support that people were not bothered when they come in contact with immigrants who speak little or no English. However, there seemed to be more disagreement across states for attribution of the severity of recent natural disasters to global climate change or whether professional athletes should be required to stand during the national anthem at sporting events.  
+As you can see from above, we created maps for each component of question #22 as well. Again, there seemed to be noticeable contrasts in responses to these value-based questions across states. For instance, there seemed to generally be pretty broad support that people were not bothered when they come in contact with immigrants who speak little or no English. However, there seemed to be more disagreement across states for attribution of the severity of recent natural disasters to global climate change or whether professional athletes should be required to stand during the national anthem at sporting events.  
 
-These responses were also helpful when building out our regression models later on in our investigation.  
+These responses were also helpful when building out our regression models later on in our investigation. We decided to map out one more question from the survey (Q24) and adding the data for another (Q25) before creating another model. 
+
+**Question 25:** 
+
+"When you think about what it means to be American, which of the following comes closer to your own view?" (we ignored responses of "neither", "both" and "Don't Know/Refused")
+
+1. Having a mix of different cultures and values from around the world
+2. Having a single culture grounded in Christian values
 
 ***
 
-#### Question 24 -- Do you think recent stories about women being sexually harassed and assaulted in the workplace are isolated incidents or are they part of a broader pattern of how women are often treated?
+### Question 24 -- Do you think recent stories about women being sexually harassed and assaulted in the workplace are isolated incidents or are they part of a broader pattern of how women are often treated?
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -517,6 +522,8 @@ state_map +
   scale_fill_gradient2(limits = c(-0.5,0.5))
 ```
 
+### Second regression model set
+
 Once we'd aggregated the data from these questions, we decided to take a look at an expanded regression model incorporating our new variables. 
 
 ```{r regression3}
@@ -524,18 +531,18 @@ elec_regr3 <- lm(trump_per ~  q17c + q17d + q17e + q17f + q17h + q22a + q22b + q
 summary(elec_regr3)
 ```
 
-Adding our 8 new variables yielded a slight increase in the $R^{2}$ value (about 0.09), but many of the variables show high p-values and can therefore be eliminated from the model without significant losses to the $R^{2}$ value. Our backward elimination process here led to us removing all of the responses to the parts of question 22. It appears that the responses to the parts of that question were not strong predictors of a vote for Trump in 2016. 
+Adding our 8 new variables yielded a slight increase in the $R^{2}$ value (about 0.09), but many of the variables showed high p-values and could therefore be eliminated from the model without significant losses to the $R^{2}$ value. Our backward elimination process here led to us removing all of the responses to the parts of question 22. It appears that the responses to the parts of that question were not strong predictors of a vote for Trump in 2016, though question 24 did seem to have a significant effect. 
 
 ```{r regression4}
 elec_regr4 <- lm(trump_per ~  q17c + q17d + q17e + q24 + q25, data = states)
 summary(elec_regr4)
 ```
 
-Having looked over the Survey, we decided to incorporate the responses to question 6 into our model as well. Below are plots of the responses organized by state.
+At this point we took another look at the questions from the American Values Survey. We decided to avoid questions directly related to Donald Trump and party affiliation due to the potential bias they may have introduced. From what remained we decided to incorporate the responses to question 6 into our model as well. Below are plots of the responses organized by state.
 
-#### Question 6 -- Should **the following topic** be the highest priority, high but not the highest, or a lower priority? {.tabset .tabset-pills}
+### Question 6 -- Should the following topic be the highest priority, high but not the highest, or a lower priority? {.tabset .tabset-pills}
 
-##### A
+#### A
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -545,7 +552,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1,1))
 ```
 
-##### B
+#### B
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -555,7 +562,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1,1))
 ```
 
-##### C
+#### C
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -565,7 +572,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1,1))
 ```
 
-##### D
+#### D
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -575,7 +582,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1,1))
 ```
 
-##### E
+#### E
   
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -585,7 +592,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1,1))
 ```
 
-##### F
+#### F
 
 ```{r, echo = FALSE, fig.align = 'center'}
 state_map +
@@ -595,7 +602,7 @@ state_map +
   scale_fill_gradient2(limits = c(-1,1))
 ```
 
-####
+### Incorporating Q6 into the regression
 
 This next regression model incorporated all of the responses to questions 6a-f.
 
@@ -604,26 +611,20 @@ elec_regr5 <- lm(trump_per ~  q17c + q17d + q17e + q24 + q25 + q6a + q6b + q6c +
 summary(elec_regr5)
 ```
 
-Finally, a respectable $R^{2}$ value! Let's clean it up a little by removing some of the less impactful variables...
+Finally, a respectable $R^{2}$ value! We cleaned up the model a little by removing some of the less impactful variables and generated some new models based on the results of our regressions analyses. At this point we added the responses to two additional questions:
 
-```{r regression6}
-elec_regr6 <- lm(trump_per ~  q17c + q17d + q24 + q6b + q6c + q6d + q6e, data = states)
-summary(elec_regr6)
-```
+1. Q20 - Do you see monuments to Confederate soldiers more as symbols of Southern pride or more as symbols of racism?
+2. Q21 - Do you think most reporters have a personal or political agenda, OR are most reporters trying to report the news fairly and accurately?
 
-```{r}
+Additionally, based on our highest performing model, we calculated predictive values of the percent that voted for Trump in 2016 by state, and took a look at the residuals.
+
+```{r, message=FALSE, warning=FALSE}
 require(ggiraph)
 require(ggiraphExtra)
-require(plyr)
-require(tidyverse)
 
-# map_data <- USA_votes %>% select(state, trump_per)
+states <- states %>% dplyr::select(ID, trump_per, q17a, q17b, q17d, q17f, q22e, q22f, q6b, q6c, q6e, q6f, q20, q21)
 
-# write.csv(map_data, 'C:/Users/zalexander/Desktop/election_data.csv')
-
-states <- states %>% select(ID, trump_per, q17a, q17b, q17d, q17f, q22e, q22f, q6b, q6c, q6e, q6f, q20, q21)
-
-
+# tested the model based on our highest performing lm that you created
 for(i in 1:length(states$ID)){
   states$model[i] <- 0.83630 + 
     (0.07863 * states$q17a[i]) + 
@@ -645,7 +646,12 @@ for(i in 1:length(states$ID)){
 model <- lm(formula = trump_per ~ q17a + q17b + q17d + q17f+ q22e+ q22f+ q6b+ q6c+ q6e+ q6f + q20+ q21, data = states)
 summary(model)
 step(model, direction = "both", trace=FALSE ) 
+```
 
+Using backward elimination, we decided to remove one extra variable from the model to boost the $R^{2}$ value a little more.  
+
+```{r}
+# tested the model again
 model <- lm(formula = trump_per ~ q17a + q17b + q17d + q17f+ q22e+ q22f+ q6b+ q6c+ q6e + q20+ q21, data = states)
 summary(model)
 
@@ -666,9 +672,16 @@ for(i in 1:length(states$ID)){
   states$diff_two[i] <- states$model_two[i] - states$trump_per[i]
 }
 
+```
+
+After calculating the predicted values using the updated model, we noticed that we still had some percent total calculations for some states that were much higher than the actual values. To adjust for this, we decided to remove these states and re-run the model one final time.
+```{r}
+
+## the residuals show that these were very far from 0, so decided to remove them to see if it would improve the model
 states_out <- states %>% 
   filter(ID != "California" & ID != "Maryland" & ID != "Oklahoma" & ID != "Montana" & ID != "North Dakota")
 
+## last model
 model_three <- lm(formula = trump_per ~ q17a + q17b + q17d + q17f+ q22e+ q22f+ q6b+ q6c+ q6e + q20+ q21, data = states_out)
 summary(model_three)
 
@@ -689,10 +702,120 @@ for(i in 1:length(states_out$ID)){
   states_out$diff_three[i] <- states_out$model_three[i] - states_out$trump_per[i]
 }
 
-model_data <- as.data.frame(states_out) %>% select(ID, trump_per, model_three, diff_three)
-
-write.csv(model_data, 'C:/Users/zalexander/Desktop/model_data.csv')
+model_data <- as.data.frame(states_out) %>% dplyr::select(ID, trump_per, model_three, diff_three)
 ```
 
+With our final model yielding a relatively strong $R^{2}$, we mapped out the residuals between the actual and predicted values for states with enough data:  
+
+```{r, echo = FALSE, fig.align = 'center'}
+ggplot(data = states_out) +
+  ggtitle("Inaccuracy of model") +
+  geom_sf(aes(fill = (states_out$diff_three))) +
+  labs(fill = "Difference") +
+  scale_fill_gradient2(limits = c(-0.1,0.1)) +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+### Model against data for all of the USA
+
+Finally, we were able to run our model against the data as a whole and come up with an estimate of what the popular vote comes out to for Donald Trump for the 2016 election:
+
+```{r calculate_USA_values, echo = FALSE}
+question_list <- c("17a", "17b", "17d", "17f", "22e", "22f", "6b", "6c", "6e", "20", "21")
+df_list_usa <- c("17a", "17b", "17d", "17f", "22e", "22f", "6b", "6c", "6e", "20", "21")
+q_num <- c(90,92,93,95,108,109,66,67,69,100,102)
+
+USA_17a <- mean(avs$q17a[avs$q17a < 5], na.rm=TRUE)
+USA_17b <- mean(avs$q17b[avs$q17b < 5], na.rm=TRUE)
+USA_17d <- mean(avs$q17d[avs$q17d < 5], na.rm=TRUE)
+USA_17f <- mean(avs$q17f[avs$q17f < 5], na.rm=TRUE)
+USA_22e <- mean(avs$q22e[avs$q22e < 5], na.rm=TRUE)
+USA_22f <- mean(avs$q22f[avs$q22f < 5], na.rm=TRUE)
+USA_6b <- mean(avs$q6b[avs$q6b < 4], na.rm=TRUE)
+USA_6c <- mean(avs$q6c[avs$q6c < 4], na.rm=TRUE)
+USA_6e <- mean(avs$q6e[avs$q6e < 4], na.rm=TRUE)
+USA_20 <- mean(avs$q20[avs$q20 < 3], na.rm=TRUE)
+USA_21 <- mean(avs$q21[avs$q21 < 3], na.rm=TRUE)
+
+Expected_USA_vote <- 0.35615 + 
+    (0.08077 * USA_17a) + 
+    (-0.07477 * USA_17b) + 
+    (-0.12467 * USA_17d) + 
+    (0.12577 * USA_17f) + 
+    (-0.08823 * USA_22e) + 
+    (0.06634 * USA_22f) + 
+    (0.15742 * USA_6b) +
+    (-0.09137 * USA_6c) +
+    (-0.06588 * USA_6e) +
+    (-0.26037 * USA_20) +
+    (0.42384 * USA_21)
+Expected_USA_vote
+```
+48.95% is not so far off from the 46.1% Trump got in the 2016 Presidential Election (https://en.wikipedia.org/wiki/2016_United_States_presidential_election)
 
 
+*** 
+## Discussion
+
+When we started building our regression model, it was interesting to see that certain values and questions from the survey seemed to be more predictive of the amount of votes for Trump than others. Here are the questions and their corresponding values that made it into our final model:  
+
+Do you strongly favor, favor, oppose, or strongly oppose...  
+
++ Allowing	gay	and	lesbian	couples	to	marry	legally?  
++ Allowing	a	small	business	owner	in	your	state	to	refuse	to	provide	products	or	
+services	to	gay	or	lesbian	people,	if	doing	so	violates	their	religious	beliefs?  
++ Building a wall along the U.S. border with Mexico?  
++ Allowing illegal immigrants brought to the U.S. as children to gain legal resident status if they join the military or go to college?  
+
+Do you completely agree, mostly agree, mostly disagree, or completely disagree...  
+
++ America today sets a good moral example for the world? 
++ Professional athletes should be required to stand during the national anthem at sporting events?  
+
+Do you think that the following should be the highest priority, high but not highest priority, or lower priority?... 
+
++ Enacting stricter gun control laws. 
++ Reducing health care costs.  
++ Changing the federal income tax system to make it more fair.  
+
+Do you see monuments to Confederate soldiers more as a symbol of Southern pride or more as symbols of racism?  
+
+Do you think most reporters have a personal or political agenda, OR are most reporters trying to report the news fairly and accurately?
+
+As you can see, it is interesting that these value-based questions seemed to span a wide range of topics, and didn't focus solely on one polarizing value. This seems to indicate that there truly was strong polarization across many different types of values across the country during the time of the 2016 election.
+
+***
+
+## Conclusion
+Elections often come down to the wire and are decided by a relatively small number of votes. Candidates spend millions of dollars on polling to get an idea of just how tight these margins are. We aimed to create a model that could predict polling preferences based on a select number of questions pertaining to major policy points and diversity. From a statistical point of view, the final result was a fairly strong model with an $R^{2}$ above **0.85**. This is a prime example, however, of a case where the margins in the real world are much finer than in the mathematical world. The residuals of our model at times approached 0.1, which would mean a miscalculation of the amount of votes Trump would get by 10%. 10% is the difference between a close race and a landslide.
+
+While working through this process, we were able to examine values that seemed to be quite predictive of favoring votes for a particular candidate. For instance, it is interesting that responses to questions related to gun control, health care, our tax system, immigration, and building a wall along the southern border with Mexico all made it into our model. These topics have been at the forefront of the Trump campaign and his time in office.
+
+When thinking about building out a similar model to predict the votes garnered by Hillary Clinton, we could re-examine these values that showed to be quite predictive of votes for Trump, and see if values outside the scope of this project could be added in later on that tend to hold more weight among left-leaning voters than right-leaning voters. 
+
+As mentioned at the outset, this election proved to be a very polarizing one, with people claiming at times that they would vote **against** a particular candidate instead of voting **for** one. The long list of values that make up our final model prove that this is true, given that there were ample opportunities for voters to project why they felt their candidate was the right choice to lead the United States.
+
+
+***
+
+## Addendum -- Utilizing JSON Data for this Project
+
+To utilize more types of data for our project, we also decided to make a webpage that shows a representation of the performance of our model relative to the actual percentage of votes for Trump by state in the 2016 election.  
+
+This webpage was made using a Javascript framework (Angular), and the visualization was created using d3.js -- a Javascript charting library.  
+
+We converted the data to json format utilizing the `rjson()` library:  
+
+```{r, message=FALSE, warning=FALSE}
+library(rjson)
+library(jsonlite)
+
+webdata <- toJSON(unname(split(model_data, 1:nrow(model_data))))
+
+# # to view the json data uncomment below
+# prettify(webdata)
+```
+
+Then, we were able to utilize this dataset to create a d3.js graphic and webpage. [Here is the final product](https://www.data607projects.com/final-project).
